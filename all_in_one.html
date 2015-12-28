@@ -1,0 +1,432 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <script src = "fabric.js"></script>
+  <script src = "Sortable.js"></script>
+  <style>
+  #feedback { font-size: 1.4em; }
+  #floor_list .ui-selecting { background: #FECA40; }
+  #floor_list .ui-selected { background: #F39814; color: black; }
+  #floor_list { list-style-type: none; margin: 0; padding: 0; width: 60%; }
+  #floor_list li { margin: 3px; padding: 0.4em; font-size: 1.4em; height: 18px; }
+  #beacon_list .ui-selecting { background: #FECA40; }
+  #beacon_list .ui-selected { background: #F39814; color: black; }
+  #beacon_list { list-style-type: none; margin: 0; padding: 0; width: 60%; }
+  #beacon_list li { margin: 3px; padding: 0.4em; font-size: 1.4em; height: 18px; }
+  #data_list .ui-selecting { background: #FECA40; }
+  #data_list .ui-selected { background: #F39814; color: black; }
+  #data_list { list-style-type: none; margin: 0; padding: 0; width: 60%; }
+  #data_list li { margin: 3px; padding: 0.4em; font-size: 1.4em; height: 18px; }
+  .ui-widget-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #aaaaaa;
+    opacity: 0.3;
+  }
+  </style>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+  <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+  <scritp src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/base/jquery-ui.css"></script>
+
+</head>
+
+<body>
+
+  <div id = "floor_list_div" style="border:solid">
+    <h1> Floor List </h1>
+    <ul id = "floor_list" class = "floor_list">
+    </ul>
+    <button id = "add_floor" onclick="add_floor()"> Add New Floor</button>
+
+  </div>
+
+
+  <div id = "canvas_div" style="border:solid">
+    <canvas id = "floor_map" width=500 height=500 style="border:1px solid #000000;"></canvas>
+    <input id = "image" type = "file" accept = "image/*">
+  </div>
+
+
+
+  <div id = "toggle_div" style="border:solid">
+    <input type="radio" name="view" value="Edit lock" onchange="toggle_editlock();" id="edit_lock" checked>
+    <label for="editlock_button" class="switch-label switch-label-on">Edit Lock</label>
+    <input type="radio" name="view" value="Beacon Data" onchange="toggle_beacon();" id="beacon_button">
+    <label for="beacon_button" class="switch-label switch-label-off">Beacon Data</label>
+    <input type="radio" name="view" value="Training Data" onchange="toggle_tdata();" id="training_button">
+    <label for="training_button" class="switch-label switch-label-on">Training Data</label>
+
+  </div>
+
+  <div id = "training_data_div" style="border:solid">
+    <h1>Training Data List</h1>
+    <ul id = "data_list" class = "data_list"></ul>
+  </div>
+
+  <div id = "beacon_list_div" style="border:solid">
+    <h1> Beacon Data List </h1>
+    <ul id = "beacon_list" class = "beacon_list"></ul>
+  </div>
+
+  <div id = "beacon_dialog_div" title = "Enter beacon information">
+    <label>Enter the name of the floor here</label>
+    <input type = "text" id = "floor_name">
+  </div>
+
+  <div id = "tdata_dialog_div" title = "Enter all detectable beacons here">
+    <label> Enter the name of the beacon: </label>
+    <input type = "text" id = "beacon_name">
+
+  </div>
+
+  <div id = "floor_dialog_div" title = "Enter floor information here">
+    <ul id = "enter_tdata_list"></ul>
+    <label> Enter the name of the beacon: </label>
+    <input type = "text" id = "tdata_name">
+  </div>
+
+  <script>
+  //global variables
+  var floor_array = [];
+  var current_floor = {
+    name:"mock floor",
+    beacons:[],
+    training_data:[],
+    floor_map:null
+  };
+  //used to control which variable is currently entering, 0 = editlocked, 1 = beacon, 2 = tdata
+  var status = 0;
+  var beacon_id = 0;
+  var tdata_id = 0;
+
+  //booleans to keep track of dialogs.
+  var new_floor = false;
+  var new_beacon = false;
+  var new_tdata = false;
+
+  $(function() {
+    $("#floor_list").selectable({
+      //prevents multiple selection
+        selecting: function(event, ui){
+            if( $(".ui-selected, .ui-selecting").length > 1){
+                  $(ui.selecting).removeClass("ui-selecting");
+            }
+        },
+        //upon selection, change the canvas to the selected floor
+        selected: function(){
+          $( ".ui-selected", this ).each(function() {
+            var index = $( "#floor_list li" ).index( this );
+            current_floor = floor_array[index];
+            clear_canvas();
+            update_canvas();
+          });
+        },
+    });
+    $("#beacon_list").selectable({
+      selecting: function(event, ui){
+        if( $(".ui-selected, .ui-selecting").length > 1){
+            $(ui.selecting).removeClass("ui-selecting");
+          }
+      },
+      selected: function(){
+        $( ".ui-selected", this ).each(function() {
+          var index = $( "#beacon_list li" ).index( this );
+          var ind_on_canvas = findById(canvas.getObjects(), current_floor.beacons[index].id);
+        });
+      }
+    });
+
+    $("#data_list").selectable({
+        selecting: function(event, ui){
+            if( $(".ui-selected, .ui-selecting").length > 1){
+                  $(ui.selecting).removeClass("ui-selecting");
+            }
+        },
+        selected: function(){
+          $( ".ui-selected", this ).each(function() {
+            var index = $( "#data_list li" ).index( this );
+            canvas.getObjects();
+          });
+        }
+    });
+
+    $("#floor_dialog_div").dialog({
+      autoOpen: false,
+      modal: true,
+      buttons: {
+         Cancel: function() {$(this).dialog("close");},
+         Confirm: function() {
+           set_new_floor();
+           $(this).dialog("close");
+         }
+      },
+
+    });
+
+    $("#beacon_dialog_div").dialog({
+      autoOpen: false,
+      modal: true,
+      buttons: {
+         Cancel: function() {$(this).dialog("close");},
+         Confirm: function() {
+           set_new_beacon();
+           $(this).dialog("close");
+         }
+      },
+    });
+
+    $("#tdata_dialog_div").dialog({
+      autoOpen: false,
+      modal: true,
+      buttons: {
+         Cancel: function() {
+           $(this).dialog("close");
+         },
+         Confirm: function() {
+           set_new_tdata();
+           $(this).dialog("close");
+         }
+      },
+    });
+  });
+  
+  function set_new_beacon(){new_beacon = true};
+  function set_new_floor(){new_floor = true};
+  function set_new_tdata(){new_tdata = true};
+  //canvas scripts
+
+  var canvas = new fabric.Canvas("floor_map");
+  canvas.selection = true;
+  canvas.addOnAddRemove = true;
+  canvas.on('mouse:down', function(options){
+    var symbol = null;
+    if (options.target){
+
+    }else if(status != 0){
+      var pointer = canvas.getPointer(options.e);
+      if(status ==1){
+        $("#beacon_dialog_div").dialog("open");
+        if(new_beacon){
+          new_beacon = false;
+          var id = 'bc' + beacon_id++;
+          var x = Math.round(pointer.x);
+          var y = Math.round(pointer.y);
+          var name = $("#beacon_name").val();
+          $("#beacon_name").val("");
+          symbol = new fabric.Circle({radius:5, fill:'green',top:y, left:x, id:id});
+          var beacon = {name:name, top:y, left:x, id:id};
+          $("<li>"+beacon.name+ '<i class="beacon-remove">Remove</i>'+ "</li>").appendTo("ul.beacon_list");
+          current_floor.beacons.push(beacon);
+        }
+      } else{
+        $("#tdata_dialog_div").dialog("open");
+        if(new_tdata){
+          new_tdata = false;
+          var id = 'td' + tdata_id++;
+          var x = Math.round(pointer.x);
+          var y = Math.round(pointer.y);
+          var name = $("#tdata_name").val();
+          $("#tdata_name").val("");
+          symbol = new fabric.Triangle({width:10, height:10, fill:'blue', top:y, left:x, id:id});
+          var tdata = {name:name, top:y, left:x, id:id };
+          $("<li>"+tdata.name+ '<i class="data-remove">Remove</i>'+ "</li>").appendTo("ul.data_list");
+          current_floor.training_data.push(tdata);
+        }
+      }
+      if(symbol != null){
+        canvas.add(symbol);
+        symbol.lockMovementY = true;
+        symbol.lockMovementX = true;
+        symbol.hasControls = false;
+        console.log(canvas.getObjects());
+        canvas.renderAll();
+      }
+    }});
+  canvas.on('object:selected',onObjectSelected);
+
+  function onObjectSelected(e){
+    if(e.target.get('type') == 'triangle'){
+      //var index = findById(current_floor.training_data, e.target.id);
+
+    } else {
+      //var index = findById(current_floor.beacons, e.target.id);
+    }
+  }
+
+
+//called when a new floor is selected
+  function update_canvas(){
+    if(current_floor.floor_map != null){
+      canvas.setBackgroundImage(current_floor.floor_map, canvas.renderAll.bind(canvas));
+    }
+    status = 0;
+    $("#edit_lock").prop("checked", true);
+    console.log(current_floor.beacons);
+    for(var i = 0; i < current_floor.beacons.length; i++){
+      var beacon = current_floor.beacons[i];
+      console.log(beacon);
+      var symbol = new fabric.Circle({radius:5, fill:'green',top:beacon.top, left:beacon.left, id:beacon.id});
+      canvas.add(symbol);
+      symbol.lockMovementY = true;
+      symbol.lockMovementX = true;
+      symbol.hasControls = false;
+      $("<li>"+beacon.name+ '<i class="beacon-remove">Remove</i>'+ "</li>").appendTo("ul.beacon_list");
+    }
+    for(var i = 0; i < current_floor.training_data.length; i++){
+      var tdata = current_floor.training_data[i];
+      var symbol = new fabric.Triangle({width:5,height:5, fill:'yellow',top:tdata.top, left:tdata.left, id:tdata.id});
+      canvas.add(symbol);
+      symbol.lockMovementY = true;
+      symbol.lockMovementX = true;
+      symbol.hasControls = false;
+      $("<li>"+tdata.name+ '<i class="data-remove">Remove</i>'+ "</li>").appendTo("ul.data_list");
+    }
+    canvas.renderAll();
+  }
+
+  document.getElementById("image").onchange = function handleImage(e){
+    var reader = new FileReader();
+    reader.onload = function (event){
+      var imgObj = new Image();
+      imgObj.src = event.target.result;
+      imgObj.onload = function() {
+        var image = new fabric.Image(imgObj);
+        image.set({
+        angle: 0,
+        padding: 10,
+        cornersize:10,
+        height:500,
+        width:500,
+        });
+        canvas.setBackgroundImage(image, canvas.renderAll.bind(canvas));
+        //could ask to remove stuff here
+        current_floor.floor_map = image;
+      }
+    }
+    reader.readAsDataURL(e.target.files[0]);
+  };
+
+  //floor list script
+
+  var floor_list = Sortable.create(document.getElementById("floor_list"),{
+    sort: true,
+    handle: ".my-handle",
+    filter: '.js-remove',
+    onFilter: function (evt) {
+    var c = confirm("are you sure you wish to remove this floor");
+    if(c){
+      var el = floor_list.closest(evt.item); // get dragged item
+      el && el.parentNode.removeChild(el);
+      floor_array.splice(evt.oldIndex, 1);
+    }}
+  });
+
+//removes objects on the canvas and lists
+  function clear_canvas(){
+    canvas.backgroundImage = null;
+    canvas.clear().renderAll;
+    $("#beacon_list").empty();
+    $("#data_list").empty();
+  }
+
+  function add_floor(){
+    $("#floor_dialog_div").dialog("open");
+    if (new_floor){
+      new_floor = false;
+      var floor_name = $("#floor_name").val();
+      $("#floor_name").val("");
+      $("<li>"+floor_name+ '<i class="js-remove">Remove</i>'+ "</li>").appendTo("ul.floor_list");
+      var floor_object = {
+        name:floor_name,
+        beacons:[],
+        training_data:[],
+        floor_map:null
+      };
+      current_floor = floor_object;
+      floor_array.push(floor_object);
+     }
+  }
+  //toggle scripts
+  function toggle_editlock(){
+    status = 0;
+  }
+
+  function toggle_beacon(){
+    if(has_background_image()){
+      status = 1;
+    } else {
+      alert("Please upload a floor map first before adding data");
+      $("#edit_lock").prop("checked", true);
+    }
+  }
+  function toggle_tdata(){
+    if(has_background_image()){
+      status = 2;
+    } else {
+      alert("Please upload a floor map first before adding data");
+      $("#edit_lock").prop("checked", true);
+    }
+  }
+
+  //checks if the background is empty
+  function has_background_image(){
+    return canvas.backgroundImage != null;
+  }
+
+
+//used to find the object on the canvas that is currently selected
+  function findById(array, id){
+    for(var i = 0; i < array.length; i++){
+      if(array[i].id.valueOf() == id.valueOf()){
+        //array used guaranteed to have only one instance of the id, therefore returning
+        //the first instance is enough
+        return i;
+      }
+    }
+    return -1;
+  }
+  //beacon data
+  var beacon_list = Sortable.create(document.getElementById("beacon_list"),{
+    filter: '.beacon-remove',
+    onFilter: function (evt) {
+      var c = confirm("do you want to remove this beacon?");
+      if(c){
+        var el = beacon_list.closest(evt.item); // get dragged item
+        el && el.parentNode.removeChild(el);
+        //removes from the canvas
+        var id = current_floor.beacons[evt.oldIndex].id;
+        var index_on_canvas = findById(canvas.getObjects(), id);
+        canvas.remove(canvas.item(index_on_canvas));
+        //removes from the array
+        current_floor.beacons.splice(evt.oldIndex, 1);
+        $('#beacon_list.ui-selected').removeClass('ui-selected');
+    } }
+  });
+
+  //training data
+  var data_list = Sortable.create(document.getElementById("data_list"),{
+    filter: '.data-remove',
+    onFilter: function (evt) {
+      var c = confirm("do you want to remove this data?");
+      if(c){
+        var el = beacon_list.closest(evt.item); // get dragged item
+        el && el.parentNode.removeChild(el);
+        //removes from the canvas
+        var id = current_floor.training_data[evt.oldIndex].id;
+        var index_on_canvas = findById(canvas.getObjects(), id);
+        canvas.remove(canvas.item(index_on_canvas));
+        //removes from the array
+        current_floor.training_data.splice(evt.oldIndex, 1);
+        $('#data_list.ui-selected').removeClass('ui-selected');
+    } }
+  });
+
+  </script>
+</body>
+
+</html>
