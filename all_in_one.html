@@ -3,7 +3,8 @@
 
 <head>
   <script src = "fabric.js"></script>
-  <script src = "Sortable.js"></script>
+  <script src="http://rubaxa.github.io/Sortable/Sortable.js"></script>
+  <script src = "dentist.js"></script>
   <style>
   #feedback { font-size: 1.4em; }
   #floor_list .ui-selecting { background: #FECA40; }
@@ -47,7 +48,7 @@
 
 
   <div id = "canvas_div" style="border:solid">
-    <canvas id = "floor_map" width=500 height=500 style="border:1px solid #000000;"></canvas>
+    <canvas id = "floor_map" width="500" height="500" style="border:1px solid red"></canvas>
     <input id = "image" type = "file" accept = "image/*">
   </div>
 
@@ -89,16 +90,17 @@
   </div>
 
   <div id = "tdata_dialog" title = "Adding new training data">
-    <ul id = "enter_tdata_list"></ul>
+    <ul id = "enter_tdata_list" name = "enter_tdata_list" class = "enter_tdata_list"></ul>
     <form id = "tdata_form" method="get" action="">
-      <label> Enter the name of the beacon: </label>
-      <input type = "text" id = "tdata_name" name = "tdata_name"/>
-      <label> Enter the RSSI detected: </label>
-      <input type = "float" id = "rssi_value" name = "rssi_value" />
+      <label for"tdata_name"> Beacon detected: </label>
+      <input type = "text" id = "tdata_name" name = "tdata_name" />
+      <label for="rssi_value"> RSSI for that beacon: </label>
+      <input type = "integer" id = "rssi_value" name = "rssi_value" />
     </form>
   </div>
 
   <script>
+  "use strict"
   //global variables
   var floor_array = [];
   //booby fake init floor
@@ -106,15 +108,48 @@
     name:"mock floor",
     beacons:[],
     training_data:[],
+    
     floor_map:null,
     beacon_id:0,
     tdata_id:0,
   };
-  //used to control which variable is currently entering, 0 = editlocked, 1 = beacon, 2 = tdata
+  //used to control which variable is currently entering, 0 = editlocked, 1 = beacon, 2 = tdata 3 = point of interest
   var status = 0;
 
-  $(function() {
-    $("#floor_list").selectable({
+  var building_height;
+  var building_width;
+  //how many meter each box represents
+  var grid_size = 0.5;
+  var box_x;
+  var box_y;
+  var tdata_entry = {};
+
+jQuery(document).ready(function($) {
+    console.log()
+    var url = "http://178.62.124.27/start_config?buildingNameInput=fda&namespaceInput=dfsa&buildingHeight=20&buildingWidth=10";
+    var params = url.extract();
+    building_height = params.buildingHeight;
+    building_width = params.buildingWidth;
+    box_x = building_width / grid_size;
+    box_y  = building_height / grid_size;
+
+    $("#tdata_dialog").hide();
+    $("#beacon_dialog").hide();
+    $("#floor_dialog").hide();
+    $("#floor_list").sortable({
+      handle:".handle",
+      start: function(event, ui) {
+        ui.item.startPos = ui.item.index();
+      },
+      update: function(event, ui) {
+        ui.item.endPos = ui.item.index();
+        var removed = floor_array.splice(ui.item.startPos,1)[0];
+        floor_array.splice(ui.item.endPos,0,removed);
+      }
+
+    }).selectable({
+      filter: "li",
+      cancel: ".handle",
       //prevents multiple selection
         selecting: function(event, ui){
             if( $(".ui-selected, .ui-selecting").length > 1){
@@ -131,6 +166,7 @@
           });
         },
     });
+
     $("#beacon_list").selectable({
       selecting: function(event, ui){
         if( $(".ui-selected, .ui-selecting").length > 1){
@@ -158,6 +194,8 @@
           });
         }
     });
+
+
 
     $("#floor_form").validate({
       rules: {
@@ -193,28 +231,56 @@
           required: true,
           minlength: 4,
         },
+        rssi_value:{
+          required:true
+        }
       },
       messages:{
-        floor_name:{
+        tdata_name:{
           required: "please enter a name for this floor",
           minlength: "the minimum length of the name is 4",
+        },
+        rssi_value:{
+          required:"please enter the rssi value detected for this beacon",
         }
+
       }
     });
   });
 
   //canvas scripts
-
   var canvas = new fabric.Canvas("floor_map");
   canvas.selection = true;
   canvas.addOnAddRemove = true;
+  function add_grid_lines(x_len, y_len){
+    console.log(box_x, box_y);
+    //add vertical lines
+    for (var i = 0; i < box_x; i++) {
+      canvas.add(new fabric.Line([ i * (x_len/box_x), 0, i * (x_len/box_x), y_len], { stroke: '#ccc', selectable: false }));
+
+    }
+    //add horizontal lines
+    for(var i = 0; i < box_y; i++){
+      canvas.add(new fabric.Line([ 0, i * y_len/box_y, x_len, i * y_len/box_y], { stroke: '#ccc', selectable: false }));
+    }
+  }
+
+  function reset_floor(){
+    current_floor.beacons = [];
+    current_floor.training_data = [];
+    current_floor.beacon_id = 0;
+    current_floor.floor_id = 0;
+    current_floor.image = null;
+    clear_canvas();
+
+  }
   canvas.on('mouse:down', function(options){
     var symbol = null;
     if (options.target){
     }else if(status != 0){
       var pointer = canvas.getPointer(options.e);
-      var x = Math.round(pointer.x);
-      var y = Math.round(pointer.y);
+      var x = pixel_to_grid_x(Math.round(pointer.x));
+      var y = pixel_to_grid_y(Math.round(pointer.y));
       if(status ==1){
         $("#beacon_dialog").dialog({
           modal: true,
@@ -225,8 +291,7 @@
              var id = 'bc' + current_floor.beacon_id++;
              var name = $("#beacon_name").val();
              $("#beacon_name").val("");
-             console.log(x, y);
-             var symbol = new fabric.Circle({radius:5, fill:'green',top:y, left:x, id:id});
+             var symbol = new fabric.Circle({radius:5, fill:'green',top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
              canvas.add(symbol);
              symbol.lockMovementY = true;
              symbol.lockMovementX = true;
@@ -236,6 +301,7 @@
              $("<li>"+beacon.name+ '<i class="beacon-remove">Remove</i>'+ "</li>").appendTo("ul.beacon_list");
              current_floor.beacons.push(beacon);
              $(this).dialog("close");
+             console.log(current_floor.beacons);
            }
            }
           },
@@ -244,24 +310,38 @@
         $("#tdata_dialog").dialog({
           modal: true,
           buttons: {
+          Add: function(){
+              if($("#tdata_form").valid()){
+                tdata_entry[$("#tdata_name").val()] = $("#rssi_value").val();
+                $("<li>"+$("#tdata_name").val() +": " + $("#rssi_value").val() + '<i class="enter_tdata_remove">Remove</i>'+ "</li>").appendTo("ul.enter_tdata_list");
+                $("#tdata_name").val("");
+                $("#rssi_value").val(0);
+                console.log(tdata_entry);
+              }
+          },
            Cancel: function() {
+             tdata_entry = {};
              $(this).dialog("close");
            },
            Confirm: function() {
+             if(Object.keys(tdata_entry).length==0){
+               alert("there is no data to enter!");
+             } else {
              var id = 'td' + current_floor.tdata_id++;
-             var name = $("#tdata_name").val();
-             $("#tdata_name").val("");
-             var symbol = new fabric.Triangle({width:10, height:10, fill:'blue', top:y, left:x, id:id});
+             var symbol = new fabric.Triangle({width:10, height:10, fill:'blue', top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
              canvas.add(symbol);
              symbol.lockMovementY = true;
              symbol.lockMovementX = true;
              symbol.hasControls = false;
              canvas.renderAll();
-             var tdata = {name:name, top:y, left:x, id:id };
-             $("<li>"+tdata.name+ '<i class="data-remove">Remove</i>'+ "</li>").appendTo("ul.data_list");
+             var tdata = {top:y, left:x, id:id, data:tdata_entry};
+             $("<li>"+"(X:"+x+", (Y:"+y+")" + '<i class="data-remove">Remove</i>'+ "</li>").appendTo("ul.data_list");
              current_floor.training_data.push(tdata);
+             tdata_entry = {};
+             $("#enter_tdata_list").empty();
              $(this).dialog("close");
            }
+         }
           },
         })
         }
@@ -286,11 +366,9 @@
     }
     status = 0;
     $("#edit_lock").prop("checked", true);
-    console.log(current_floor.beacons);
     for(var i = 0; i < current_floor.beacons.length; i++){
       var beacon = current_floor.beacons[i];
-      console.log(beacon);
-      var symbol = new fabric.Circle({radius:5, fill:'green',top:beacon.top, left:beacon.left, id:beacon.id});
+      var symbol = new fabric.Circle({radius:5, fill:'green',top:grid_to_pixel_y(beacon.top), left:grid_to_pixel_x(beacon.left), id:beacon.id});
       canvas.add(symbol);
       symbol.lockMovementY = true;
       symbol.lockMovementX = true;
@@ -299,7 +377,7 @@
     }
     for(var i = 0; i < current_floor.training_data.length; i++){
       var tdata = current_floor.training_data[i];
-      var symbol = new fabric.Triangle({width:5,height:5, fill:'yellow',top:tdata.top, left:tdata.left, id:tdata.id});
+      var symbol = new fabric.Triangle({width:5,height:5, fill:'yellow',top:grid_to_pixel_y(tdata.top), left:grid_to_pixel_x(tdata.left), id:tdata.id});
       canvas.add(symbol);
       symbol.lockMovementY = true;
       symbol.lockMovementX = true;
@@ -310,32 +388,46 @@
   }
 
   document.getElementById("image").onchange = function handleImage(e){
+    if(current_floor.backgroundImage != null||confirm("By uploading a new floor map, all current data placed for this floor will be removed, would you like to continue?")){
+        reset_floor();
     var reader = new FileReader();
     reader.onload = function (event){
       var imgObj = new Image();
       imgObj.src = event.target.result;
       imgObj.onload = function() {
         var image = new fabric.Image(imgObj);
+        var width = this.width;
+        var height = this.height;
+        if(Math.max(width, height) < 500){
+          width = width * 2;
+          height = height * 2;
+        } else if(Math.min(width,height) > 800){
+          width = width/2;
+          height = height/2;
+        }
+        canvas.setHeight(height);
+        canvas.setWidth(width);
         image.set({
-        angle: 0,
-        padding: 10,
-        cornersize:10,
-        height:500,
-        width:500,
+          angle: 0,
+          padding: 10,
+          cornersize:10,
+          height:height,
+          width:width,
         });
+        add_grid_lines(width, height);
         canvas.setBackgroundImage(image, canvas.renderAll.bind(canvas));
         //could ask to remove stuff here
         current_floor.floor_map = image;
       }
     }
     reader.readAsDataURL(e.target.files[0]);
+  }
   };
 
   //floor list script
 
   var floor_list = Sortable.create(document.getElementById("floor_list"),{
-    sort: true,
-    handle: ".my-handle",
+    sort : false,
     filter: '.js-remove',
     onFilter: function (evt) {
     var c = confirm("are you sure you wish to remove this floor");
@@ -363,7 +455,7 @@
            if($("#floor_form").valid()){
            var floor_name = $("#floor_name").val();
            $("#floor_name").val("");
-           $("<li>"+floor_name+ '<i class="js-remove">Remove</i>'+ "</li>").appendTo("ul.floor_list");
+           $("<li><span class='handle'>==</span>" +floor_name+ '<i class="js-remove">Remove</i>'+ "</li>").appendTo("ul.floor_list");
            var floor_object = {
              name:floor_name,
              beacons:[],
@@ -412,7 +504,7 @@
 //used to find the object on the canvas that is currently selected
   function findById(array, id){
     for(var i = 0; i < array.length; i++){
-      if(array[i].id.valueOf() == id.valueOf()){
+      if(array[i].id === id){
         //array used guaranteed to have only one instance of the id, therefore returning
         //the first instance is enough
         return i;
@@ -438,6 +530,17 @@
     } }
   });
 
+  var enter_tdata_list = Sortable.create(document.getElementById("enter_tdata_list"),{
+    filter:'.enter_tdata_remove',
+    onFilter:function(evt){
+      var beacon = $("#enter_tdata_list li")[evt.oldIndex].innerHTML.split(':')[0];
+      delete tdata_entry[beacon];
+      console.log(tdata_entry);
+      var el = enter_tdata_list.closest(evt.item);
+      el && el.parentNode.removeChild(el);
+    }
+  })
+
   //training data
   var data_list = Sortable.create(document.getElementById("data_list"),{
     filter: '.data-remove',
@@ -455,6 +558,19 @@
         $('#data_list.ui-selected').removeClass('ui-selected');
     } }
   });
+
+  function pixel_to_grid_x(x){
+    return Math.floor(x/(canvas.width/box_x));
+  }
+  function pixel_to_grid_y(y){
+    return Math.floor(y/(canvas.height/box_y));
+  }
+  function grid_to_pixel_x(x){
+    return Math.round((x+0.5)*(canvas.width/box_x).toFixed(2)-5);
+  }
+  function grid_to_pixel_y(y){
+    return Math.round((y+0.5)*(canvas.height/box_y).toFixed(2)-5);
+  }
 
   </script>
 </body>
