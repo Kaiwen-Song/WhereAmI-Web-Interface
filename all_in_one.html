@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <script src = "fabric.js"></script>
+  <script src = "https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.5.0/fabric.js"></script>
   <script src="http://rubaxa.github.io/Sortable/Sortable.js"></script>
   <script src = "dentist.js"></script>
   <style>
@@ -48,7 +48,7 @@
 
 
   <div id = "canvas_div" style="border:solid">
-    <canvas id = "floor_map" width="500" height="500" style="border:1px solid red"></canvas>
+    <canvas id = "floor_map" width="500" height="500" style="border:1px solid"></canvas>
     <input id = "image" type = "file" accept = "image/*">
   </div>
 
@@ -61,7 +61,13 @@
     <label for="beacon_button" class="switch-label switch-label-off">Beacon Data</label>
     <input type="radio" name="view" value="Training Data" onchange="toggle_tdata();" id="training_button">
     <label for="training_button" class="switch-label switch-label-on">Training Data</label>
+    <input type="radio" name="view" value="Point of Interest" onchange="toggle_POI();" id="POI_button">
+    <label for="POI_button" class="switch-label switch-label-on">Point of Interest</label>
+  </div>
 
+  <div id = "beacon_list_div" style="border:solid">
+    <h1> Beacon Data List </h1>
+    <ul id = "beacon_list" class = "beacon_list"></ul>
   </div>
 
   <div id = "training_data_div" style="border:solid">
@@ -69,9 +75,9 @@
     <ul id = "data_list" class = "data_list"></ul>
   </div>
 
-  <div id = "beacon_list_div" style="border:solid">
-    <h1> Beacon Data List </h1>
-    <ul id = "beacon_list" class = "beacon_list"></ul>
+  <div id = "POI_list_div" style = "border:solid">
+    <h1> Points of interests List </h1>
+    <ul id = "POI_list" class = "POI_list"></ul>
   </div>
 
   <div id = "floor_dialog" title = "Adding a new floor">
@@ -99,20 +105,26 @@
     </form>
   </div>
 
+  <div id = "POI_dialog" title = "Adding a new point of interest">
+    <form id = "POI_form">
+      <label> Enter the name of the point of interest </label>
+      <input type = "text" id ="POI_name" name = "POI_name"/>
+      <label> Select the type of interest </label>
+      <select id = "POI_select" name = "POI_select">
+        <option value = "Room">Room</option>
+        <option value = "Stairs">Stairs</option>
+        <option value = "Toilet">Toilet</option>
+        <option value = "Dining">Dining</option>
+      </select>
+    </form>
+  </div>
+
   <script>
   "use strict"
   //global variables
   var floor_array = [];
   //booby fake init floor
-  var current_floor = {
-    name:"mock floor",
-    beacons:[],
-    training_data:[],
-    
-    floor_map:null,
-    beacon_id:0,
-    tdata_id:0,
-  };
+  var current_floor = null;
   //used to control which variable is currently entering, 0 = editlocked, 1 = beacon, 2 = tdata 3 = point of interest
   var status = 0;
 
@@ -125,8 +137,8 @@
   var tdata_entry = {};
 
 jQuery(document).ready(function($) {
-    console.log()
-    var url = "http://178.62.124.27/start_config?buildingNameInput=fda&namespaceInput=dfsa&buildingHeight=20&buildingWidth=10";
+    $("#image").prop('disabled', 'true');
+    var url = "http://178.62.124.27/start_config?buildingNameInput=fda&namespaceInput=dfsa&buildingHeight=20&buildingWidth=20";
     var params = url.extract();
     building_height = params.buildingHeight;
     building_width = params.buildingWidth;
@@ -136,6 +148,7 @@ jQuery(document).ready(function($) {
     $("#tdata_dialog").hide();
     $("#beacon_dialog").hide();
     $("#floor_dialog").hide();
+    $("#POI_dialog").hide();
     $("#floor_list").sortable({
       handle:".handle",
       start: function(event, ui) {
@@ -157,16 +170,19 @@ jQuery(document).ready(function($) {
             }
         },
         //upon selection, change the canvas to the selected floor
-        selected: function(){
+        selected: function(event, ui){
+          console.log(ui);
           $( ".ui-selected", this ).each(function() {
             var index = $( "#floor_list li" ).index( this );
+            console.log($("#floor_list .ui-selected"));
             current_floor = floor_array[index];
             clear_canvas();
             update_floor();
           });
         },
-    });
 
+    });
+/*
     $("#beacon_list").selectable({
       selecting: function(event, ui){
         if( $(".ui-selected, .ui-selecting").length > 1){
@@ -177,6 +193,14 @@ jQuery(document).ready(function($) {
         $( ".ui-selected", this ).each(function() {
           var index = $( "#beacon_list li" ).index( this );
           var ind_on_canvas = findById(canvas.getObjects(), current_floor.beacons[index].id);
+          highlight_canvas_item(ind_on_canvas);
+        });
+      },
+      unselected:function(){
+        $( ".ui-selected", this ).each(function() {
+          var index = $( "#beacon_list li" ).index( this );
+          var ind_on_canvas = findById(canvas.getObjects(), current_floor.beacons[index].id);
+          unhighlight_canvas_item(ind_on_canvas);
         });
       }
     });
@@ -184,7 +208,7 @@ jQuery(document).ready(function($) {
     $("#data_list").selectable({
         selecting: function(event, ui){
             if( $(".ui-selected, .ui-selecting").length > 1){
-                  $(ui.selecting).removeClass("ui-selecting");
+              $(ui.selecting).removeClass("ui-selecting");
             }
         },
         selected: function(){
@@ -193,10 +217,9 @@ jQuery(document).ready(function($) {
             canvas.getObjects();
           });
         }
+
     });
-
-
-
+*/
     $("#floor_form").validate({
       rules: {
         floor_name:{
@@ -248,12 +271,29 @@ jQuery(document).ready(function($) {
     });
   });
 
+  function highlight_canvas_item(index){
+    canvas.highlighted = index;
+    var item = canvas.item(index);
+    item.scaleX = 2;
+    item.scaleY = 2;
+    canvas.setActiveObject(item);
+    canvas.renderAll();
+  }
+
+  function unhighlight_canvas_item(index){
+    if(canvas.highlighted!= null){
+      var item = canvas.item(index);
+      item.scaleX = 0.5;
+      item.scaleY = 0.5;
+      canvas.renderAll();
+    }
+  }
+
   //canvas scripts
   var canvas = new fabric.Canvas("floor_map");
   canvas.selection = true;
   canvas.addOnAddRemove = true;
   function add_grid_lines(x_len, y_len){
-    console.log(box_x, box_y);
     //add vertical lines
     for (var i = 0; i < box_x; i++) {
       canvas.add(new fabric.Line([ i * (x_len/box_x), 0, i * (x_len/box_x), y_len], { stroke: '#ccc', selectable: false }));
@@ -268,85 +308,114 @@ jQuery(document).ready(function($) {
   function reset_floor(){
     current_floor.beacons = [];
     current_floor.training_data = [];
+    current_floor.POI=[];
     current_floor.beacon_id = 0;
+    current_floor.poi_id = 0;
     current_floor.floor_id = 0;
     current_floor.image = null;
     clear_canvas();
-
   }
+
   canvas.on('mouse:down', function(options){
     var symbol = null;
     if (options.target){
-    }else if(status != 0){
+    }else{
       var pointer = canvas.getPointer(options.e);
       var x = pixel_to_grid_x(Math.round(pointer.x));
       var y = pixel_to_grid_y(Math.round(pointer.y));
-      if(status ==1){
-        $("#beacon_dialog").dialog({
-          modal: true,
-          buttons: {
-           Cancel: function() {$(this).dialog("close");},
-           Confirm: function() {
-             if($("#beacon_form").valid()){
-             var id = 'bc' + current_floor.beacon_id++;
-             var name = $("#beacon_name").val();
-             $("#beacon_name").val("");
-             var symbol = new fabric.Circle({radius:5, fill:'green',top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
-             canvas.add(symbol);
-             symbol.lockMovementY = true;
-             symbol.lockMovementX = true;
-             symbol.hasControls = false;
-             canvas.renderAll();
-             var beacon = {name:name, top:y, left:x, id:id};
-             $("<li>"+beacon.name+ '<i class="beacon-remove">Remove</i>'+ "</li>").appendTo("ul.beacon_list");
-             current_floor.beacons.push(beacon);
-             $(this).dialog("close");
-             console.log(current_floor.beacons);
-           }
-           }
-          },
-        })
-      } else{ //status == 2
-        $("#tdata_dialog").dialog({
-          modal: true,
-          buttons: {
-          Add: function(){
-              if($("#tdata_form").valid()){
-                tdata_entry[$("#tdata_name").val()] = $("#rssi_value").val();
-                $("<li>"+$("#tdata_name").val() +": " + $("#rssi_value").val() + '<i class="enter_tdata_remove">Remove</i>'+ "</li>").appendTo("ul.enter_tdata_list");
-                $("#tdata_name").val("");
-                $("#rssi_value").val(0);
-                console.log(tdata_entry);
-              }
-          },
-           Cancel: function() {
-             tdata_entry = {};
-             $(this).dialog("close");
-           },
-           Confirm: function() {
-             if(Object.keys(tdata_entry).length==0){
-               alert("there is no data to enter!");
-             } else {
-             var id = 'td' + current_floor.tdata_id++;
-             var symbol = new fabric.Triangle({width:10, height:10, fill:'blue', top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
-             canvas.add(symbol);
-             symbol.lockMovementY = true;
-             symbol.lockMovementX = true;
-             symbol.hasControls = false;
-             canvas.renderAll();
-             var tdata = {top:y, left:x, id:id, data:tdata_entry};
-             $("<li>"+"(X:"+x+", (Y:"+y+")" + '<i class="data-remove">Remove</i>'+ "</li>").appendTo("ul.data_list");
-             current_floor.training_data.push(tdata);
-             tdata_entry = {};
-             $("#enter_tdata_list").empty();
-             $(this).dialog("close");
-           }
-         }
-          },
-        })
-        }
+      switch (+status) {
+        case 0:break;
+        case 1:
+          $("#beacon_dialog").dialog({
+            modal: true,
+            buttons: {
+             Cancel: function() {$(this).dialog("close");},
+             Confirm: function() {
+               if($("#beacon_form").valid()){
+               var id = 'bc' + current_floor.beacon_id++;
+               var name = $("#beacon_name").val();
+               $("#beacon_name").val("");
+               var symbol = new fabric.Circle({radius:5, fill:'green',top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
+               canvas.add(symbol);
+               lock_symbol(symbol);
+
+               canvas.renderAll();
+               var beacon = {name:name, top:y, left:x, id:id};
+               $("<li>"+beacon.name+ '<i class="beacon-remove">Remove</i>'+ "</li>").appendTo("ul.beacon_list");
+               current_floor.beacons.push(beacon);
+               $(this).dialog("close");
+             }
+             }
+            },
+          });
+          break;
+        case 2:
+          $("#tdata_dialog").dialog({
+            modal: true,
+            buttons: {
+              Add: function(){
+                  if($("#tdata_form").valid()){
+                    tdata_entry[$("#tdata_name").val()] = $("#rssi_value").val();
+                    $("<li>"+$("#tdata_name").val() +": " + $("#rssi_value").val() + '<i class="enter_tdata_remove">Remove</i>'+ "</li>").appendTo("ul.enter_tdata_list");
+                    $("#tdata_name").val("");
+                    $("#rssi_value").val(0);
+                  }
+              },
+               Cancel: function() {
+                 tdata_entry = {};
+                 $(this).dialog("close");
+               },
+               Confirm: function() {
+                 if(Object.keys(tdata_entry).length==0){
+                   alert("there is no data to enter!");
+                 } else {
+                   var id = 'td' + current_floor.tdata_id++;
+                   var symbol = new fabric.Triangle({width:10, height:10, fill:'blue', top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
+                   canvas.add(symbol);
+                   lock_symbol(symbol);
+                   canvas.renderAll();
+                   var tdata = {top:y, left:x, id:id, data:tdata_entry};
+                   $("<li>(X:"+x+", Y:"+y+")" + '<i class="data-remove">Remove</i>'+ "</li>").appendTo("ul.data_list");
+                   current_floor.training_data.push(tdata);
+                   tdata_entry = {};
+                   $("#enter_tdata_list").empty();
+                   $(this).dialog("close");
+                 }
+                }
+              },
+            });
+            break;
+        case 3:
+          $("#POI_dialog").dialog({
+            modal: true,
+            buttons: {
+             Cancel: function() {$(this).dialog("close");},
+             Confirm: function() {
+               if($("#POI_form").valid()){
+                 var id = 'poi' + current_floor.poi_id++;
+                 var name = $("#POI_name").val();
+                 $("#POI_name").val("");
+                 var type = $("#POI_type").val();
+                 $("#POI_type").empty();
+                 var symbol = new fabric.Rect({height:10, width:10, fill:'red',top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
+                 canvas.add(symbol);
+                 lock_symbol(symbol);
+                 canvas.renderAll();
+                 var PoI = {name:name, top:y, left:x, id:id};
+                 $("<li>"+PoI.name+'<i class="poi-remove">Remove</i>'+ "</li>").appendTo("ul.POI_list");
+                 current_floor.POI.push(PoI);
+                 $(this).dialog("close");
+               }
+             }
+            },
+          });
+          break;
+        default:
+          break;
       }
-    });
+    }
+  })
+
   canvas.on('object:selected',onObjectSelected);
 
   function onObjectSelected(e){
@@ -361,30 +430,45 @@ jQuery(document).ready(function($) {
 
 //called when a new floor is selected
   function update_floor(){
+    //if there isnt a map then there's no data
     if(current_floor.floor_map != null){
-      canvas.setBackgroundImage(current_floor.floor_map, canvas.renderAll.bind(canvas));
+      var new_background = new fabric.Image(current_floor.floor_map);
+      scale_image(new_background);
+      canvas.setHeight(new_background.height);
+      canvas.setWidth(new_background.width);
+      add_grid_lines(new_background.width, new_background.height);
+      canvas.setBackgroundImage(new_background, canvas.renderAll.bind(canvas));
+      for(var i = 0; i < current_floor.beacons.length; i++){
+        var beacon = current_floor.beacons[i];
+        var symbol = new fabric.Circle({radius:5, fill:'green',top:grid_to_pixel_y(beacon.top), left:grid_to_pixel_x(beacon.left), id:beacon.id});
+        canvas.add(symbol);
+        lock_symbol(symbol);
+        $("<li>"+beacon.name+ '<i class="beacon-remove">Remove</i>'+ "</li>").appendTo("ul.beacon_list");
+      }
+      for(var i = 0; i < current_floor.training_data.length; i++){
+        var tdata = current_floor.training_data[i];
+        var symbol = new fabric.Triangle({width:10,height:10, fill:'blue',top:grid_to_pixel_y(tdata.top), left:grid_to_pixel_x(tdata.left), id:tdata.id});
+        canvas.add(symbol);
+        lock_symbol(symbol);
+        $("<li>(X:"+tdata.x+", Y:"+tdata.y+")" + '<i class="data-remove">Remove</i>'+ "</li>").appendTo("ul.data_list");
+      }
+      for(var i = 0; i< current_floor.POI.length;i++){
+        var poi = current_floor.POI[i];
+        var symbol = new fabric.Rect({width:10, height:10, fill:"red", top:grid_to_pixel_y(poi.top), left:grid_to_pixel_x(poi.left), id:poi.id});
+        lock_symbol(symbol);
+        canvas.add(symbol);
+        $("<li>"+poi.name+'<i class="poi-remove">Remove</i>'+ "</li>").appendTo("ul.POI_list");
+      }
+      canvas.renderAll();
     }
     status = 0;
     $("#edit_lock").prop("checked", true);
-    for(var i = 0; i < current_floor.beacons.length; i++){
-      var beacon = current_floor.beacons[i];
-      var symbol = new fabric.Circle({radius:5, fill:'green',top:grid_to_pixel_y(beacon.top), left:grid_to_pixel_x(beacon.left), id:beacon.id});
-      canvas.add(symbol);
-      symbol.lockMovementY = true;
-      symbol.lockMovementX = true;
-      symbol.hasControls = false;
-      $("<li>"+beacon.name+ '<i class="beacon-remove">Remove</i>'+ "</li>").appendTo("ul.beacon_list");
-    }
-    for(var i = 0; i < current_floor.training_data.length; i++){
-      var tdata = current_floor.training_data[i];
-      var symbol = new fabric.Triangle({width:5,height:5, fill:'yellow',top:grid_to_pixel_y(tdata.top), left:grid_to_pixel_x(tdata.left), id:tdata.id});
-      canvas.add(symbol);
-      symbol.lockMovementY = true;
-      symbol.lockMovementX = true;
-      symbol.hasControls = false;
-      $("<li>"+tdata.name+ '<i class="data-remove">Remove</i>'+ "</li>").appendTo("ul.data_list");
-    }
-    canvas.renderAll();
+  }
+
+  function lock_symbol(symbol){
+    symbol.lockMovementY = true;
+    symbol.lockMovementX = true;
+    symbol.hasControls = false;
   }
 
   document.getElementById("image").onchange = function handleImage(e){
@@ -396,34 +480,43 @@ jQuery(document).ready(function($) {
       imgObj.src = event.target.result;
       imgObj.onload = function() {
         var image = new fabric.Image(imgObj);
-        var width = this.width;
-        var height = this.height;
-        if(Math.max(width, height) < 500){
-          width = width * 2;
-          height = height * 2;
-        } else if(Math.min(width,height) > 800){
-          width = width/2;
-          height = height/2;
-        }
-        canvas.setHeight(height);
-        canvas.setWidth(width);
-        image.set({
-          angle: 0,
-          padding: 10,
-          cornersize:10,
-          height:height,
-          width:width,
-        });
-        add_grid_lines(width, height);
+        scale_image(image);
+        canvas.setHeight(image.height);
+        canvas.setWidth(image.width);
+        add_grid_lines(image.width, image.height);
         canvas.setBackgroundImage(image, canvas.renderAll.bind(canvas));
         //could ask to remove stuff here
-        current_floor.floor_map = image;
+        current_floor.floor_map = imgObj;
       }
     }
     reader.readAsDataURL(e.target.files[0]);
   }
   };
 
+
+//input is a fabric js image
+function scale_image(image){
+  var edge_length = 600;
+  if(image.width > image.height){
+    image.set({
+      angle:0,
+      padding:10,
+      cornersize:10,
+      height:edge_length,
+      width:(image.width/image.height).toFixed(1) * edge_length
+    })
+  } else {
+    image.set({
+      angle:0,
+      padding:10,
+      cornersize:10,
+      width:edge_length,
+      height:(image.width/image.height).toFixed(1)* edge_length
+    })
+
+  }
+
+}
   //floor list script
 
   var floor_list = Sortable.create(document.getElementById("floor_list"),{
@@ -435,6 +528,14 @@ jQuery(document).ready(function($) {
       var el = floor_list.closest(evt.item); // get dragged item
       el && el.parentNode.removeChild(el);
       floor_array.splice(evt.oldIndex, 1);
+      if(floor_array.length == 0){
+         $("#image").prop('disabled', true);
+       }else{
+         var str_index = "#floor_list li:eq(" + (floor_array.length-1) + ")";
+         $(str_index).addClass("ui-selected");
+         console.log($("#floor_list li"));
+       }
+      clear_canvas();
     }}
   });
 
@@ -444,6 +545,7 @@ jQuery(document).ready(function($) {
     canvas.clear().renderAll;
     $("#beacon_list").empty();
     $("#data_list").empty();
+    $("#POI_list").empty();
   }
 
   function add_floor(){
@@ -460,12 +562,21 @@ jQuery(document).ready(function($) {
              name:floor_name,
              beacons:[],
              training_data:[],
+             POI:[],
              floor_map:null,
              beacon_id:0,
              tdata_id:0,
+             poi_id:0,
            };
            current_floor = floor_object;
            floor_array.push(floor_object);
+           $("#image").prop('disabled', false);
+           console.log($("#floor_list li"));
+           $("#floor_list").find('li').removeClass("ui-selected");
+           var str_index = "#floor_list li:eq(" + (floor_array.length-1) + ")";
+           $(str_index).addClass("ui-selected");
+           console.log($("#floor_list li"));
+
            $(this).dialog("close");
          }}
       },
@@ -479,19 +590,40 @@ jQuery(document).ready(function($) {
   }
 
   function toggle_beacon(){
+    if(current_floor != null){
     if(has_background_image()){
       status = 1;
     } else {
       alert("Please upload a floor map first before adding data");
       $("#edit_lock").prop("checked", true);
+    }} else {
+      alert("Please enter a floor first before carry out any operations");
+      $("#edit_lock").prop("checked", true);
+
     }
   }
   function toggle_tdata(){
+    if(current_floor != null){
     if(has_background_image()){
       status = 2;
     } else {
       alert("Please upload a floor map first before adding data");
       $("#edit_lock").prop("checked", true);
+    }} else {
+      alert("Please enter a floor first before carry out any operations");
+    }
+  }
+  function toggle_POI(){
+    if(current_floor != null){
+    if(has_background_image()){
+      status = 3;
+    } else {
+      alert("Please upload a floor map first before adding data");
+      $("#edit_lock").prop("checked", true);
+    }} else {
+      alert("Please enter a floor first before carry out any operations");
+      $("#edit_lock").prop("checked", true);
+
     }
   }
 
@@ -535,7 +667,6 @@ jQuery(document).ready(function($) {
     onFilter:function(evt){
       var beacon = $("#enter_tdata_list li")[evt.oldIndex].innerHTML.split(':')[0];
       delete tdata_entry[beacon];
-      console.log(tdata_entry);
       var el = enter_tdata_list.closest(evt.item);
       el && el.parentNode.removeChild(el);
     }
@@ -547,7 +678,7 @@ jQuery(document).ready(function($) {
     onFilter: function (evt) {
       var c = confirm("do you want to remove this data?");
       if(c){
-        var el = beacon_list.closest(evt.item); // get dragged item
+        var el = data_list.closest(evt.item); // get dragged item
         el && el.parentNode.removeChild(el);
         //removes from the canvas
         var id = current_floor.training_data[evt.oldIndex].id;
@@ -556,6 +687,24 @@ jQuery(document).ready(function($) {
         //removes from the array
         current_floor.training_data.splice(evt.oldIndex, 1);
         $('#data_list.ui-selected').removeClass('ui-selected');
+    } }
+  });
+
+  //poi data
+  var POI_list = Sortable.create(document.getElementById("POI_list"),{
+    filter: '.poi-remove',
+    onFilter: function (evt) {
+      var c = confirm("do you want to remove this POI?");
+      if(c){
+        var el = POI_list.closest(evt.item); // get dragged item
+        el && el.parentNode.removeChild(el);
+        //removes from the canvas
+        var id = current_floor.POI[evt.oldIndex].id;
+        var index_on_canvas = findById(canvas.getObjects(), id);
+        canvas.remove(canvas.item(index_on_canvas));
+        //removes from the array
+        current_floor.POI.splice(evt.oldIndex, 1);
+        $('#POI_list.ui-selected').removeClass('ui-selected');
     } }
   });
 
