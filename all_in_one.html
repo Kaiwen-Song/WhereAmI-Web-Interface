@@ -29,95 +29,136 @@
     opacity: 0.3;
   }
   </style>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
   <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
   <script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.14.0/jquery.validate.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+  <scritp src="https://cdnjs.cloudflare.com/ajax/libs/json2/20150503/json2.min.js"></script>
 
 </head>
 
 <body>
+<div id = "all" class ="container-fluid"style="height: 80%;">
+  <div class = "row">
+    <div id = "floor_list_div" class="col-sm-3" style="border:solid; height:80%">
+      <h1> Floor List </h1>
+      <ul id = "floor_list" class = "floor_list">
+      </ul>
+      <button id = "add_floor" onclick="add_floor()"> Add New Floor</button>
+      <button id = "confirm" onclick="send_data()"> Confirm</button>
+    </div>
 
-  <div id = "floor_list_div" style="border:solid">
-    <h1> Floor List </h1>
-    <ul id = "floor_list" class = "floor_list">
-    </ul>
-    <button id = "add_floor" onclick="add_floor()"> Add New Floor</button>
+    <div id = "middle panel" class="col-sm-6">
+      <div id = "canvas_div" style="height: 80%; border:solid" >
+        <canvas id = "floor_map" width="500" height="500" style="border:1px solid"></canvas>
+        <input id = "image" type = "file" accept = "image/*">
+      </div>
+      <div id = "toggle_div" style="border:solid">
+        <input type="radio" name="view" value="Edit lock" onchange="toggle_editlock();" id="edit_lock" checked>
+        <label for="editlock_button" class="switch-label switch-label-on">Edit Lock</label>
+        <input type="radio" name="view" value="Beacon Data" onchange="toggle_beacon();" id="beacon_button">
+        <label for="beacon_button" class="switch-label switch-label-off">Beacon Data</label>
+        <input type="radio" name="view" value="Training Data" onchange="toggle_tdata();" id="training_button">
+        <label for="training_button" class="switch-label switch-label-on">Training Data</label>
+        <input type="radio" name="view" value="Point of Interest" onchange="toggle_POI();" id="POI_button">
+        <label for="POI_button" class="switch-label switch-label-on">Point of Interest</label>
+      </div>
+    </div>
 
+  <div class = "panel-group col-sm-3" id = "lists" style="height:80%; border:solid">
+    <div id = "beacon_list_div" class = "panel panel-default">
+      <div class="panel-heading">
+        <h4 class="panel-title">
+          <a data-toggle="collapse" data-parent="#lists" href="#collapseOne">
+            Beacon Data List
+          </a>
+        </h4>
+      </div>
+      <div id="collapseOne" class="panel-collapse collapse in">
+        <div class = "panel-body">
+          <ul id = "beacon_list" class = "beacon_list"></ul>
+        </div>
+      </div>
+    </div>
+
+    <div id = "training_data_div" class = "panel panel-default">
+      <div class="panel-heading">
+        <h4 class="panel-title">
+          <a data-toggle="collapse" data-parent="#lists" href="#collapseTwo">
+            Training Data List
+        </h4>
+      </div>
+      <div id="collapseTwo" class="panel-collapse collapse">
+        <div class = "panel-body">
+          <ul id = "data_list" class = "data_list"></ul>
+        </div>
+      </div>
+    </div>
+
+    <div id = "POI_list_div" class = "panel panel-default">
+      <div class="panel-heading">
+        <h4 class="panel-title">
+          <a data-toggle="collapse" data-parent="#lists" href="#collapseThree">
+            Points of interests List
+          </a>
+        </h4>
+      </div>
+      <div id="collapseThree" class="panel-collapse collapse">
+        <div class = "panel-body">
+          <ul id = "POI_list" class = "POI_list"></ul>
+        </div>
+      </div>
+    </div>
   </div>
 
+</div>
 
-  <div id = "canvas_div" style="border:solid">
-    <canvas id = "floor_map" width="500" height="500" style="border:1px solid"></canvas>
-    <input id = "image" type = "file" accept = "image/*">
+  <div class="modal-content" id = "floor_dialog">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal">&times;</button>
+      <h4 class="modal-title">Adding a new floor</h4>
+    </div>
+      <div class="modal-body">
+        <form id = "floor_form" method="get" action="">
+          <label>Enter the name of the floor here</label>
+          <input type = "text" id = "floor_name" name = "floor_name" />
+        </form>
+    </div>
   </div>
+    <div id = "beacon_dialog" title = "Adding a new beacon">
+      <form id = "beacon_form" method="get" action="">
+        <label> Enter the name of the beacon: </label>
+        <input type = "text" id = "beacon_name" name = "beacon_name" />
+      </form>
 
-
-
-  <div id = "toggle_div" style="border:solid">
-    <input type="radio" name="view" value="Edit lock" onchange="toggle_editlock();" id="edit_lock" checked>
-    <label for="editlock_button" class="switch-label switch-label-on">Edit Lock</label>
-    <input type="radio" name="view" value="Beacon Data" onchange="toggle_beacon();" id="beacon_button">
-    <label for="beacon_button" class="switch-label switch-label-off">Beacon Data</label>
-    <input type="radio" name="view" value="Training Data" onchange="toggle_tdata();" id="training_button">
-    <label for="training_button" class="switch-label switch-label-on">Training Data</label>
-    <input type="radio" name="view" value="Point of Interest" onchange="toggle_POI();" id="POI_button">
-    <label for="POI_button" class="switch-label switch-label-on">Point of Interest</label>
+    </div>
   </div>
+    <div id = "tdata_dialog" title = "Adding new training data">
+      <ul id = "enter_tdata_list" name = "enter_tdata_list" class = "enter_tdata_list"></ul>
+      <form id = "tdata_form" method="get" action="">
+        <label for"tdata_name"> Beacon detected: </label>
+        <input type = "text" id = "tdata_name" name = "tdata_name" />
+        <label for="rssi_value"> RSSI for that beacon: </label>
+        <input type = "integer" id = "rssi_value" name = "rssi_value" />
+      </form>
+    </div>
 
-  <div id = "beacon_list_div" style="border:solid">
-    <h1> Beacon Data List </h1>
-    <ul id = "beacon_list" class = "beacon_list"></ul>
-  </div>
-
-  <div id = "training_data_div" style="border:solid">
-    <h1>Training Data List</h1>
-    <ul id = "data_list" class = "data_list"></ul>
-  </div>
-
-  <div id = "POI_list_div" style = "border:solid">
-    <h1> Points of interests List </h1>
-    <ul id = "POI_list" class = "POI_list"></ul>
-  </div>
-
-  <div id = "floor_dialog" title = "Adding a new floor">
-    <form id = "floor_form" method="get" action="">
-      <label>Enter the name of the floor here</label>
-      <input type = "text" id = "floor_name" name = "floor_name" />
-    </form>
-  </div>
-
-  <div id = "beacon_dialog" title = "Adding a new beacon">
-    <form id = "beacon_form" method="get" action="">
-      <label> Enter the name of the beacon: </label>
-      <input type = "text" id = "beacon_name" name = "beacon_name" />
-    </form>
-
-  </div>
-
-  <div id = "tdata_dialog" title = "Adding new training data">
-    <ul id = "enter_tdata_list" name = "enter_tdata_list" class = "enter_tdata_list"></ul>
-    <form id = "tdata_form" method="get" action="">
-      <label for"tdata_name"> Beacon detected: </label>
-      <input type = "text" id = "tdata_name" name = "tdata_name" />
-      <label for="rssi_value"> RSSI for that beacon: </label>
-      <input type = "integer" id = "rssi_value" name = "rssi_value" />
-    </form>
-  </div>
-
-  <div id = "POI_dialog" title = "Adding a new point of interest">
-    <form id = "POI_form">
-      <label> Enter the name of the point of interest </label>
-      <input type = "text" id ="POI_name" name = "POI_name"/>
-      <label> Select the type of interest </label>
-      <select id = "POI_select" name = "POI_select">
-        <option value = "Room">Room</option>
-        <option value = "Stairs">Stairs</option>
-        <option value = "Toilet">Toilet</option>
-        <option value = "Dining">Dining</option>
-      </select>
-    </form>
-  </div>
+    <div id = "POI_dialog" title = "Adding a new point of interest">
+      <form id = "POI_form">
+        <label> Enter the name of the point of interest </label>
+        <input type = "text" id ="POI_name" name = "POI_name"/>
+        <label> Select the type of interest </label>
+        <select id = "POI_select" name = "POI_select">
+          <option value = "Room">Room</option>
+          <option value = "Stairs">Stairs</option>
+          <option value = "Toilet">Toilet</option>
+          <option value = "Dining">Dining</option>
+          <option value = "Entrance/Exit"> Entrance/Exit </option>
+        </select>
+      </form>
+    </div>
 
   <script>
   "use strict"
@@ -138,7 +179,7 @@
 
 jQuery(document).ready(function($) {
     $("#image").prop('disabled', 'true');
-    var url = "http://178.62.124.27/start_config?buildingNameInput=fda&namespaceInput=dfsa&buildingHeight=20&buildingWidth=20";
+    var url = document.URL;
     var params = url.extract();
     building_height = params.buildingHeight;
     building_width = params.buildingWidth;
@@ -312,7 +353,7 @@ jQuery(document).ready(function($) {
     current_floor.beacon_id = 0;
     current_floor.poi_id = 0;
     current_floor.floor_id = 0;
-    current_floor.image = null;
+    current_floor.floor_map = null;
     clear_canvas();
   }
 
@@ -397,7 +438,7 @@ jQuery(document).ready(function($) {
                  $("#POI_name").val("");
                  var type = $("#POI_type").val();
                  $("#POI_type").empty();
-                 var symbol = new fabric.Rect({height:10, width:10, fill:'red',top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
+                 var symbol = new fabric.Rect({height:10, width:10,type:type, fill:'red',top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
                  canvas.add(symbol);
                  lock_symbol(symbol);
                  canvas.renderAll();
@@ -721,6 +762,36 @@ function scale_image(image){
     return Math.round((y+0.5)*(canvas.height/box_y).toFixed(2)-5);
   }
 
+  function send_data(){
+    var image_array = [];
+    for(var i = 0; i<floor_array.length; i++){
+      image_array.push(getBase64Image(floor_array[i].floor_map));
+    }
+    $.post("/save_config",
+      {
+          floors: JSON.stringify(floor_array),
+          images: image_array;
+      },
+
+  }
+  function getBase64Image(img) {
+      // Create an empty canvas element
+      var canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+
+      // Copy the image contents to the canvas
+      var ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+
+      // Get the data-URL formatted image
+      // Firefox supports PNG and JPEG. You could check img.src to
+      // guess the original format, but be aware the using "image/jpg"
+      // will re-encode the image.
+      var dataURL = canvas.toDataURL("image/png");
+
+      return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+  }
   </script>
 </body>
 
