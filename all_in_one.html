@@ -35,7 +35,7 @@
   <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
   <script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.14.0/jquery.validate.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
-  <scritp src="https://cdnjs.cloudflare.com/ajax/libs/json2/20150503/json2.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/json2/20150503/json2.min.js"></script>
 
 </head>
 
@@ -770,8 +770,8 @@ function scale_image(image){
     $.post("/save_config",
       {
           floors: JSON.stringify(floor_array),
-          images: image_array;
-      },
+          images: image_array
+      })
 
   }
   function getBase64Image(img) {
