@@ -763,15 +763,22 @@ function scale_image(image){
   }
 
   function send_data(){
+    var url = document.URL;
+    var params = url.extract();
     var image_array = [];
     for(var i = 0; i<floor_array.length; i++){
       image_array.push(getBase64Image(floor_array[i].floor_map));
     }
+
     $.post("/save_config",
-      {
+      {data:{
+          buildingNameInput: params.buildingNameInput,
+          namespaceInput: params.namespaceInput,
+          buildingHeight: params.buildingHeight,
+          buildingWidth: params.buildingWidth,
           floors: JSON.stringify(floor_array),
           images: image_array
-      })
+      }})
 
   }
   function getBase64Image(img) {
