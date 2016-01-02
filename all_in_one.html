@@ -538,13 +538,13 @@ jQuery(document).ready(function($) {
 //input is a fabric js image
 function scale_image(image){
   var edge_length = 600;
-  if(image.width > image.height){
+  if(buildingWidth > buildingHeight){
     image.set({
       angle:0,
       padding:10,
       cornersize:10,
       height:edge_length,
-      width:(image.width/image.height).toFixed(1) * edge_length
+      width:(buildingWidth/buildingHeight).toFixed(1) * edge_length
     })
   } else {
     image.set({
@@ -552,7 +552,7 @@ function scale_image(image){
       padding:10,
       cornersize:10,
       width:edge_length,
-      height:(image.width/image.height).toFixed(1)* edge_length
+      height:(buildingHeight/buildingWidth).toFixed(1)* edge_length
     })
 
   }
