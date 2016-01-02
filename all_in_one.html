@@ -7,18 +7,12 @@
   <script src = "dentist.js"></script>
   <style>
   #feedback { font-size: 1.4em; }
-  #floor_list .ui-selecting { background: #FECA40; }
   #floor_list .ui-selected { background: #F39814; color: black; }
-  #floor_list { list-style-type: none; margin: 0; padding: 0; width: 60%; }
-  #floor_list li { margin: 3px; padding: 0.4em; font-size: 1.4em; height: 18px; }
-  #beacon_list .ui-selecting { background: #FECA40; }
   #beacon_list .ui-selected { background: #F39814; color: black; }
-  #beacon_list { list-style-type: none; margin: 0; padding: 0; width: 60%; }
-  #beacon_list li { margin: 3px; padding: 0.4em; font-size: 1.4em; height: 18px; }
-  #data_list .ui-selecting { background: #FECA40; }
   #data_list .ui-selected { background: #F39814; color: black; }
-  #data_list { list-style-type: none; margin: 0; padding: 0; width: 60%; }
-  #data_list li { margin: 3px; padding: 0.4em; font-size: 1.4em; height: 18px; }
+  floor_map {
+    width: 100%;
+  }
   .ui-widget-overlay {
     position: absolute;
     top: 0;
@@ -28,34 +22,34 @@
     background: #aaaaaa;
     opacity: 0.3;
   }
+
   </style>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
   <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
   <script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.14.0/jquery.validate.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/json2/20150503/json2.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 
 </head>
 
 <body>
-<div id = "all" class ="container-fluid"style="height: 80%;">
+<div id = "all" class ="container-fluid">
   <div class = "row">
-    <div id = "floor_list_div" class="col-sm-3" style="border:solid; height:80%">
+    <div id = "floor_list_div" class=" col-lg-3">
       <h1> Floor List </h1>
-      <ul id = "floor_list" class = "floor_list">
-      </ul>
+      <ul id = "floor_list" class = "floor_list list-group"></ul>
       <button id = "add_floor" onclick="add_floor()"> Add New Floor</button>
-      <button id = "confirm" onclick="send_data()"> Confirm</button>
+
     </div>
 
-    <div id = "middle panel" class="col-sm-6">
-      <div id = "canvas_div" style="height: 80%; border:solid" >
-        <canvas id = "floor_map" width="500" height="500" style="border:1px solid"></canvas>
+    <div id = "middle panel" class=" col-lg-5">
+      <div id = "canvas_div"  >
+        <canvas id = "floor_map" class = "img-responsive" width="500" height="500" style = "border:solid"></canvas>
         <input id = "image" type = "file" accept = "image/*">
       </div>
-      <div id = "toggle_div" style="border:solid">
+      <div id = "toggle_div">
         <input type="radio" name="view" value="Edit lock" onchange="toggle_editlock();" id="edit_lock" checked>
         <label for="editlock_button" class="switch-label switch-label-on">Edit Lock</label>
         <input type="radio" name="view" value="Beacon Data" onchange="toggle_beacon();" id="beacon_button">
@@ -67,7 +61,7 @@
       </div>
     </div>
 
-  <div class = "panel-group col-sm-3" id = "lists" style="height:80%; border:solid">
+  <div class = "panel-group  col-lg-4" id = "lists" style="height:80%; ">
     <div id = "beacon_list_div" class = "panel panel-default">
       <div class="panel-heading">
         <h4 class="panel-title">
@@ -78,7 +72,7 @@
       </div>
       <div id="collapseOne" class="panel-collapse collapse in">
         <div class = "panel-body">
-          <ul id = "beacon_list" class = "beacon_list"></ul>
+          <ul id = "beacon_list" class = "beacon_list list-group"></ul>
         </div>
       </div>
     </div>
@@ -88,11 +82,12 @@
         <h4 class="panel-title">
           <a data-toggle="collapse" data-parent="#lists" href="#collapseTwo">
             Training Data List
+          </a>
         </h4>
       </div>
       <div id="collapseTwo" class="panel-collapse collapse">
         <div class = "panel-body">
-          <ul id = "data_list" class = "data_list"></ul>
+          <ul id = "data_list" class = "data_list list-group"></ul>
         </div>
       </div>
     </div>
@@ -107,12 +102,12 @@
       </div>
       <div id="collapseThree" class="panel-collapse collapse">
         <div class = "panel-body">
-          <ul id = "POI_list" class = "POI_list"></ul>
+          <ul id = "POI_list" class = "POI_list list-group"></ul>
         </div>
       </div>
     </div>
   </div>
-
+  <button id = "confirm" onclick="send_data()" style = "float:right;"> Confirm</button>
 </div>
 
   <div class="modal-content" id = "floor_dialog">
@@ -179,12 +174,30 @@
 
 jQuery(document).ready(function($) {
     $("#image").prop('disabled', 'true');
-    var url = document.URL;
+    var url = "http://178.62.124.27/start_config?buildingNameInput=fda&namespaceInput=dfsa&buildingHeight=20&buildingWidth=30";
     var params = url.extract();
     building_height = params.buildingHeight;
     building_width = params.buildingWidth;
     box_x = building_width / grid_size;
     box_y  = building_height / grid_size;
+
+    var c = $('#floor_map');
+    var ct = c.get(0).getContext('2d');
+    var container = $(c).parent();
+
+    //Run function when browser resizes
+    $(window).resize( respondCanvas );
+
+    function respondCanvas(){
+        c.attr('width', $(container).width() ); //max width
+        c.attr('height', $(container).height() ); //max height
+
+        //Call a function to redraw other content (texts, images etc)
+    }
+
+    //Initial call
+    respondCanvas();
+
 
     $("#tdata_dialog").hide();
     $("#beacon_dialog").hide();
@@ -382,7 +395,7 @@ jQuery(document).ready(function($) {
 
                canvas.renderAll();
                var beacon = {name:name, top:y, left:x, id:id};
-               $("<li>"+beacon.name+ '<i class="beacon-remove">Remove</i>'+ "</li>").appendTo("ul.beacon_list");
+               $("<li class='list-group-item'>"+beacon.name+ '<i class="beacon-remove badge">Remove</i>'+ "</li>").appendTo("ul.beacon_list");
                current_floor.beacons.push(beacon);
                $(this).dialog("close");
              }
@@ -397,7 +410,7 @@ jQuery(document).ready(function($) {
               Add: function(){
                   if($("#tdata_form").valid()){
                     tdata_entry[$("#tdata_name").val()] = $("#rssi_value").val();
-                    $("<li>"+$("#tdata_name").val() +": " + $("#rssi_value").val() + '<i class="enter_tdata_remove">Remove</i>'+ "</li>").appendTo("ul.enter_tdata_list");
+                    $("<li class='list-group-item'>"+$("#tdata_name").val() +": " + $("#rssi_value").val() + '<i class="enter_tdata_remove badge">Remove</i>'+ "</li>").appendTo("ul.enter_tdata_list");
                     $("#tdata_name").val("");
                     $("#rssi_value").val(0);
                   }
@@ -416,7 +429,7 @@ jQuery(document).ready(function($) {
                    lock_symbol(symbol);
                    canvas.renderAll();
                    var tdata = {top:y, left:x, id:id, data:tdata_entry};
-                   $("<li>(X:"+x+", Y:"+y+")" + '<i class="data-remove">Remove</i>'+ "</li>").appendTo("ul.data_list");
+                   $("<li class='list-group-item'>(X:"+x+", Y:"+y+")" + '<i class="data-remove badge">Remove</i>'+ "</li>").appendTo("ul.data_list");
                    current_floor.training_data.push(tdata);
                    tdata_entry = {};
                    $("#enter_tdata_list").empty();
@@ -443,7 +456,7 @@ jQuery(document).ready(function($) {
                  lock_symbol(symbol);
                  canvas.renderAll();
                  var PoI = {name:name, top:y, left:x, id:id};
-                 $("<li>"+PoI.name+'<i class="poi-remove">Remove</i>'+ "</li>").appendTo("ul.POI_list");
+                 $("<li class='list-group-item'>"+PoI.name+'<i class="poi-remove">Remove</i>'+ "</li>").appendTo("ul.POI_list");
                  current_floor.POI.push(PoI);
                  $(this).dialog("close");
                }
@@ -484,21 +497,21 @@ jQuery(document).ready(function($) {
         var symbol = new fabric.Circle({radius:5, fill:'green',top:grid_to_pixel_y(beacon.top), left:grid_to_pixel_x(beacon.left), id:beacon.id});
         canvas.add(symbol);
         lock_symbol(symbol);
-        $("<li>"+beacon.name+ '<i class="beacon-remove">Remove</i>'+ "</li>").appendTo("ul.beacon_list");
+        $("<li class='list-group-item'>"+beacon.name+ '<i class="beacon-remove badge">Remove</i>'+ "</li>").appendTo("ul.beacon_list");
       }
       for(var i = 0; i < current_floor.training_data.length; i++){
         var tdata = current_floor.training_data[i];
         var symbol = new fabric.Triangle({width:10,height:10, fill:'blue',top:grid_to_pixel_y(tdata.top), left:grid_to_pixel_x(tdata.left), id:tdata.id});
         canvas.add(symbol);
         lock_symbol(symbol);
-        $("<li>(X:"+tdata.x+", Y:"+tdata.y+")" + '<i class="data-remove">Remove</i>'+ "</li>").appendTo("ul.data_list");
+        $("<li class='list-group-item'>(X:"+tdata.x+", Y:"+tdata.y+")" + '<i class="data-remove badge">Remove</i>'+ "</li>").appendTo("ul.data_list");
       }
       for(var i = 0; i< current_floor.POI.length;i++){
         var poi = current_floor.POI[i];
         var symbol = new fabric.Rect({width:10, height:10, fill:"red", top:grid_to_pixel_y(poi.top), left:grid_to_pixel_x(poi.left), id:poi.id});
         lock_symbol(symbol);
         canvas.add(symbol);
-        $("<li>"+poi.name+'<i class="poi-remove">Remove</i>'+ "</li>").appendTo("ul.POI_list");
+        $("<li class='list-group-item'>"+poi.name+'<i class="poi-remove badge">Remove</i>'+ "</li>").appendTo("ul.POI_list");
       }
       canvas.renderAll();
     }
@@ -537,25 +550,14 @@ jQuery(document).ready(function($) {
 
 //input is a fabric js image
 function scale_image(image){
-  var edge_length = 600;
-  if(building_width > building_height){
-    image.set({
-      angle:0,
-      padding:10,
-      cornersize:10,
-      height:edge_length,
-      width:(building_width/building_height).toFixed(1) * edge_length
-    })
-  } else {
-    image.set({
-      angle:0,
-      padding:10,
-      cornersize:10,
-      width:edge_length,
-      height:(building_height/building_width).toFixed(1)* edge_length
-    })
-
-  }
+  var width = 600;
+  image.set({
+    angle:0,
+    padding:10,
+    cornersize:10,
+    height:(building_height/building_width).toFixed(1)*width,
+    width:width
+  })
 
 }
   //floor list script
@@ -598,7 +600,8 @@ function scale_image(image){
            if($("#floor_form").valid()){
            var floor_name = $("#floor_name").val();
            $("#floor_name").val("");
-           $("<li><span class='handle'>==</span>" +floor_name+ '<i class="js-remove">Remove</i>'+ "</li>").appendTo("ul.floor_list");
+           $('<li class = "list-group-item"><span class="handle glyphicon glyphicon-menu-hamburger"></span>    '
+                +floor_name+ '<i class="js-remove badge">Remove</i>'+ '</li>').appendTo("ul.floor_list");
            var floor_object = {
              name:floor_name,
              beacons:[],
@@ -617,13 +620,53 @@ function scale_image(image){
            var str_index = "#floor_list li:eq(" + (floor_array.length-1) + ")";
            $(str_index).addClass("ui-selected");
            console.log($("#floor_list li"));
-
            $(this).dialog("close");
          }}
       },
 
     })
+/*
+    $("#floor_dialog").dialog({
+      buttons:[
+        {
+          text:"Cancel",
+          class:"btn-primary",
+          click: function(){$(this).dialog("close");}
+        },
+        {
+          text:"Confirm",
+          class:"btn-success",
+          click: function(){
+            if($("#floor_form").valid()){
+            var floor_name = $("#floor_name").val();
+            $("#floor_name").val("");
+            $('<li class = "list-group-item"><span class="handle glyphicon glyphicon-menu-hamburger"></span>    '
+                 +floor_name+ '<i class="js-remove badge">Remove</i>'+ '</li>').appendTo("ul.floor_list");
+            var floor_object = {
+              name:floor_name,
+              beacons:[],
+              training_data:[],
+              POI:[],
+              floor_map:null,
+              beacon_id:0,
+              tdata_id:0,
+              poi_id:0,
+            };
+            current_floor = floor_object;
+            floor_array.push(floor_object);
+            $("#image").prop('disabled', false);
+            console.log($("#floor_list li"));
+            $("#floor_list").find('li').removeClass("ui-selected");
+            var str_index = "#floor_list li:eq(" + (floor_array.length-1) + ")";
+            $(str_index).addClass("ui-selected");
+            console.log($("#floor_list li"));
 
+            $(this).dialog("close");
+          }}
+        }
+      ]
+    })
+*/
   }
   //toggle scripts
   function toggle_editlock(){
@@ -763,7 +806,7 @@ function scale_image(image){
   }
 
   function send_data(){
-    var url = document.URL;
+    var url = "http://178.62.124.27/start_config?buildingNameInput=fda&namespaceInput=dfsa&buildingHeight=20&buildingWidth=30";
     var params = url.extract();
     var image_array = [];
     for(var i = 0; i<floor_array.length; i++){
