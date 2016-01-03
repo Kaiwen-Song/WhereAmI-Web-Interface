@@ -5,13 +5,40 @@
   <script src = "https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.5.0/fabric.js"></script>
   <script src="http://rubaxa.github.io/Sortable/Sortable.js"></script>
   <script src = "dentist.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <style>
   #feedback { font-size: 1.4em; }
   #floor_list .ui-selected { background: #F39814; color: black; }
   #beacon_list .ui-selected { background: #F39814; color: black; }
   #data_list .ui-selected { background: #F39814; color: black; }
-  floor_map {
+
+  html,body{
+    margin: 0 auto;
+    height: 100%;
     width: 100%;
+  }
+
+  div.scroll {
+    overflow: scroll;
+  }
+  .fill_bigger{
+    height: 75vh;
+    width: 100%;
+    position:relative;
+    box-sizing:border-box;
+  }
+  .fill_all{
+    height: 95vh;
+    width: 100%;
+    position:relative;
+    box-sizing:border-box;
+  }
+  .fill {
+    height: 70vh;
+    width: 100%;
+    position:relative;
+    box-sizing:border-box;
   }
   .ui-widget-overlay {
     position: absolute;
@@ -22,7 +49,11 @@
     background: #aaaaaa;
     opacity: 0.3;
   }
-
+  .vertical_center{
+    display: inline-block;
+    vertical-align: middle;
+    float: none;
+  }
   </style>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
@@ -37,19 +68,26 @@
 <body>
 <div id = "all" class ="container-fluid">
   <div class = "row">
-    <div id = "floor_list_div" class=" col-lg-3">
-      <h1> Floor List </h1>
-      <ul id = "floor_list" class = "floor_list list-group"></ul>
-      <button id = "add_floor" onclick="add_floor()"> Add New Floor</button>
+    <div id = "floor_list_div" class=" panel panel-default col-lg-3">
+      <h2 class = "panel-heading text-center">
+         Floor List
+       </h2>
+      <div class = "panel-body scroll fill_bigger well">
+        <ul id = "floor_list" class = "floor_list list-group"></ul>
+      </div>
+      <div class = "panel-footer">
+        <button id = "add_floor" class = "btn btn-primary" onclick="add_floor()" style="float:right;"> Add New Floor</button>
+        <div class="clearfix"></div>
+      </div>
 
     </div>
 
-    <div id = "middle panel" class=" col-lg-5">
-      <div id = "canvas_div"  >
-        <canvas id = "floor_map" class = "img-responsive" width="500" height="500" style = "border:solid"></canvas>
+    <div id = "middle_panel" class=" col-lg-6 panel panel-default fill_all ">
+      <div id = "canvas_div" class = "panel-body" >
+        <canvas id = "floor_map" class = "img-responsive center-block" width="650" height="600" style = "border:1px solid"></canvas>
         <input id = "image" type = "file" accept = "image/*">
       </div>
-      <div id = "toggle_div">
+      <div id = "toggle_div" class = " panel-footer text-center" display = "inline-block">
         <input type="radio" name="view" value="Edit lock" onchange="toggle_editlock();" id="edit_lock" checked>
         <label for="editlock_button" class="switch-label switch-label-on">Edit Lock</label>
         <input type="radio" name="view" value="Beacon Data" onchange="toggle_beacon();" id="beacon_button">
@@ -59,19 +97,20 @@
         <input type="radio" name="view" value="Point of Interest" onchange="toggle_POI();" id="POI_button">
         <label for="POI_button" class="switch-label switch-label-on">Point of Interest</label>
       </div>
-    </div>
+  </div>
 
-  <div class = "panel-group  col-lg-4" id = "lists" style="height:80%; ">
+<div class ="panel panel-default  col-lg-3">
+  <div class = "panel-group" id = "lists" style="height:80%; ">
     <div id = "beacon_list_div" class = "panel panel-default">
       <div class="panel-heading">
-        <h4 class="panel-title">
+        <h2 class="panel-title text-center">
           <a data-toggle="collapse" data-parent="#lists" href="#collapseOne">
             Beacon Data List
           </a>
-        </h4>
+        </h2>
       </div>
       <div id="collapseOne" class="panel-collapse collapse in">
-        <div class = "panel-body">
+        <div class = "panel-body fill">
           <ul id = "beacon_list" class = "beacon_list list-group"></ul>
         </div>
       </div>
@@ -79,14 +118,14 @@
 
     <div id = "training_data_div" class = "panel panel-default">
       <div class="panel-heading">
-        <h4 class="panel-title">
+        <h2 class="panel-title text-center">
           <a data-toggle="collapse" data-parent="#lists" href="#collapseTwo">
             Training Data List
           </a>
-        </h4>
+        </h2>
       </div>
       <div id="collapseTwo" class="panel-collapse collapse">
-        <div class = "panel-body">
+        <div class = "panel-body fill">
           <ul id = "data_list" class = "data_list list-group"></ul>
         </div>
       </div>
@@ -94,20 +133,24 @@
 
     <div id = "POI_list_div" class = "panel panel-default">
       <div class="panel-heading">
-        <h4 class="panel-title">
+        <h2 class="panel-title text-center">
           <a data-toggle="collapse" data-parent="#lists" href="#collapseThree">
             Points of interests List
           </a>
-        </h4>
+        </h2>
       </div>
       <div id="collapseThree" class="panel-collapse collapse">
-        <div class = "panel-body">
+        <div class = "panel-body fill">
           <ul id = "POI_list" class = "POI_list list-group"></ul>
         </div>
       </div>
     </div>
   </div>
-  <button id = "confirm" onclick="send_data()" style = "float:right;"> Confirm</button>
+  <div class = "panel-footer">
+    <button id = "confirm" onclick="send_data()" class = "btn btn-success" style = "float:right;"> Confirm</button>
+    <button id = "help" onclick ="help()" class = "btn btn-info" style = "float:right"> Help</button>
+    <div class="clearfix"></div>
+  </div>
 </div>
 
   <div class="modal-content" id = "floor_dialog">
@@ -660,9 +703,9 @@ function scale_image(image){
              current_floor = floor_object;
              floor_array.push(floor_object);
              $("#image").prop('disabled', false);
-             $("#floor_list").find('li').removeClass("ui-selected");
-             var str_index = "#floor_list li:eq(" + (floor_array.length-1) + ")";
-             $(str_index).addClass("ui-selected");
+        //     $("#floor_list").find('li').removeClass("ui-selected");
+          //   var str_index = "#floor_list li:eq(" + (floor_array.length-1) + ")";
+            // $(str_index).addClass("ui-selected");
              $(this).dialog("close");
          } else {
           alert("floor name entered already exists!");
