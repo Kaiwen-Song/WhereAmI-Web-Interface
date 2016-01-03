@@ -112,7 +112,6 @@
 
   <div class="modal-content" id = "floor_dialog">
     <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal">&times;</button>
       <h4 class="modal-title">Adding a new floor</h4>
     </div>
       <div class="modal-body">
@@ -121,16 +120,24 @@
           <input type = "text" id = "floor_name" name = "floor_name" />
         </form>
     </div>
-  </div>
-    <div id = "beacon_dialog" title = "Adding a new beacon">
+</div>
+    <div id = "beacon_dialog" class="modal-content" >
+      <div class="modal-header">
+        <h4 class="modal-title">Adding a new beacon</h4>
+      </div>
+        <div class="modal-body">
       <form id = "beacon_form" method="get" action="">
         <label> Enter the name of the beacon: </label>
         <input type = "text" id = "beacon_name" name = "beacon_name" />
       </form>
-
     </div>
-  </div>
-    <div id = "tdata_dialog" title = "Adding new training data">
+    </div>
+
+    <div id = "tdata_dialog" class="modal-content" >
+      <div class="modal-header">
+        <h4 class="modal-title">Adding new training data</h4>
+      </div>
+            <div class="modal-body">
       <ul id = "enter_tdata_list" name = "enter_tdata_list" class = "enter_tdata_list"></ul>
       <form id = "tdata_form" method="get" action="">
         <label for"tdata_name"> Beacon detected: </label>
@@ -139,8 +146,13 @@
         <input type = "integer" id = "rssi_value" name = "rssi_value" />
       </form>
     </div>
+  </div>
 
-    <div id = "POI_dialog" title = "Adding a new point of interest">
+    <div id = "POI_dialog" class="modal-content" >
+      <div class="modal-header">
+        <h4 class="modal-title">Adding a new point of interest</h4>
+      </div>
+            <div class="modal-body">
       <form id = "POI_form">
         <label> Enter the name of the point of interest </label>
         <input type = "text" id ="POI_name" name = "POI_name"/>
@@ -154,6 +166,8 @@
         </select>
       </form>
     </div>
+  </div>
+</div>
 
   <script>
   "use strict"
@@ -228,7 +242,6 @@ jQuery(document).ready(function($) {
           console.log(ui);
           $( ".ui-selected", this ).each(function() {
             var index = $( "#floor_list li" ).index( this );
-            console.log($("#floor_list .ui-selected"));
             current_floor = floor_array[index];
             clear_canvas();
             update_floor();
@@ -382,30 +395,39 @@ jQuery(document).ready(function($) {
         case 1:
           $("#beacon_dialog").dialog({
             modal: true,
+            closeOnEscape: false,
+            open: function(event, ui) { $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
+                   $('.ui-dialog-buttonpane').addClass("modal-footer");},
             buttons: {
              Cancel: function() {$(this).dialog("close");},
              Confirm: function() {
                if($("#beacon_form").valid()){
-               var id = 'bc' + current_floor.beacon_id++;
-               var name = $("#beacon_name").val();
-               $("#beacon_name").val("");
-               var symbol = new fabric.Circle({radius:5, fill:'green',top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
-               canvas.add(symbol);
-               lock_symbol(symbol);
+                 var name = $("#beacon_name").val();
+                 $("#beacon_name").val("");
+                 if(unique_beacon_name(name)){
+                   var id = 'bc' + current_floor.beacon_id++;
+                   var symbol = new fabric.Circle({radius:5, fill:'green',top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
+                   canvas.add(symbol);
+                   lock_symbol(symbol);
 
-               canvas.renderAll();
-               var beacon = {name:name, top:y, left:x, id:id};
-               $("<li class='list-group-item'>"+beacon.name+ '<i class="beacon-remove badge">Remove</i>'+ "</li>").appendTo("ul.beacon_list");
-               current_floor.beacons.push(beacon);
-               $(this).dialog("close");
-             }
+                   canvas.renderAll();
+                   var beacon = {name:name, top:y, left:x, id:id};
+                   $("<li class='list-group-item'>"+beacon.name+ '<i class="beacon-remove badge">Remove</i>'+ "</li>").appendTo("ul.beacon_list");
+                   current_floor.beacons.push(beacon);
+                   $(this).dialog("close");
+                 }else{
+                   alert("beacon name entered already exists!");
+              }
              }
             },
-          });
+          }});
           break;
         case 2:
           $("#tdata_dialog").dialog({
             modal: true,
+            closeOnEscape: false,
+            open: function(event, ui) { $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
+                   $('.ui-dialog-buttonpane').addClass('modal-footer');},
             buttons: {
               Add: function(){
                   if($("#tdata_form").valid()){
@@ -442,6 +464,9 @@ jQuery(document).ready(function($) {
         case 3:
           $("#POI_dialog").dialog({
             modal: true,
+            closeOnEscape: false,
+            open: function(event, ui) { $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
+                   $('.ui-dialog-buttonpane').addClass('modal-footer');},
             buttons: {
              Cancel: function() {$(this).dialog("close");},
              Confirm: function() {
@@ -456,7 +481,7 @@ jQuery(document).ready(function($) {
                  lock_symbol(symbol);
                  canvas.renderAll();
                  var PoI = {name:name, top:y, left:x, id:id};
-                 $("<li class='list-group-item'>"+PoI.name+'<i class="poi-remove">Remove</i>'+ "</li>").appendTo("ul.POI_list");
+                 $("<li class='list-group-item'>"+PoI.name+'<i class="poi-remove badge">Remove</i>'+ "</li>").appendTo("ul.POI_list");
                  current_floor.POI.push(PoI);
                  $(this).dialog("close");
                }
@@ -481,6 +506,21 @@ jQuery(document).ready(function($) {
     }
   }
 
+function unique_beacon_name(name){
+  for(var i = 0; i < floor_array.length; i++){
+    for (var j = 0 ; j < floor_array[i].beacons.length; j++){
+      if(floor_array[i].beacons[j].name === name) return false;
+    }
+  }
+  return true;
+}
+
+function unique_floor_name(name){
+  for(var i = 0; i < floor_array.length; i++){
+    if(floor_array[i].name === name) return false;
+  }
+  return true;
+}
 
 //called when a new floor is selected
   function update_floor(){
@@ -576,7 +616,6 @@ function scale_image(image){
        }else{
          var str_index = "#floor_list li:eq(" + (floor_array.length-1) + ")";
          $(str_index).addClass("ui-selected");
-         console.log($("#floor_list li"));
        }
       clear_canvas();
     }}
@@ -594,34 +633,41 @@ function scale_image(image){
   function add_floor(){
     $("#floor_dialog").dialog({
       modal: true,
+      closeOnEscape: false,
+      open: function(event, ui) {
+         $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
+         $('.ui-dialog-buttonpane').addClass('modal-footer');
+       },
       buttons: {
          Cancel: function() {$(this).dialog("close");},
          Confirm: function() {
            if($("#floor_form").valid()){
            var floor_name = $("#floor_name").val();
            $("#floor_name").val("");
-           $('<li class = "list-group-item"><span class="handle glyphicon glyphicon-menu-hamburger"></span>    '
-                +floor_name+ '<i class="js-remove badge">Remove</i>'+ '</li>').appendTo("ul.floor_list");
-           var floor_object = {
-             name:floor_name,
-             beacons:[],
-             training_data:[],
-             POI:[],
-             floor_map:null,
-             beacon_id:0,
-             tdata_id:0,
-             poi_id:0,
-           };
-           current_floor = floor_object;
-           floor_array.push(floor_object);
-           $("#image").prop('disabled', false);
-           console.log($("#floor_list li"));
-           $("#floor_list").find('li').removeClass("ui-selected");
-           var str_index = "#floor_list li:eq(" + (floor_array.length-1) + ")";
-           $(str_index).addClass("ui-selected");
-           console.log($("#floor_list li"));
-           $(this).dialog("close");
-         }}
+           if(unique_floor_name(floor_name)){
+             $('<li class = "list-group-item"><span class="handle glyphicon glyphicon-menu-hamburger"></span>    '
+                  +floor_name+ '<i class="js-remove badge">Remove</i>'+ '</li>').appendTo("ul.floor_list");
+             var floor_object = {
+               name:floor_name,
+               beacons:[],
+               training_data:[],
+               POI:[],
+               floor_map:null,
+               beacon_id:0,
+               tdata_id:0,
+               poi_id:0,
+             };
+             current_floor = floor_object;
+             floor_array.push(floor_object);
+             $("#image").prop('disabled', false);
+             $("#floor_list").find('li').removeClass("ui-selected");
+             var str_index = "#floor_list li:eq(" + (floor_array.length-1) + ")";
+             $(str_index).addClass("ui-selected");
+             $(this).dialog("close");
+         } else {
+          alert("floor name entered already exists!");
+        }}
+       }
       },
 
     })
