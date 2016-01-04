@@ -19,6 +19,10 @@
     width: 100%;
   }
 
+  .red{
+    background:red;
+  }
+
   div.scroll {
     overflow: scroll;
   }
@@ -83,7 +87,7 @@
     </div>
 
     <div id = "middle_panel" class=" col-lg-6 panel panel-default fill_all ">
-      <div id = "canvas_div" class = "panel-body" >
+      <div id = "canvas_div" class = "panel-body container" >
         <canvas id = "floor_map" class = "img-responsive center-block" width="650" height="600" style = "border:1px solid"></canvas>
         <input id = "image" type = "file" accept = "image/*">
       </div>
@@ -153,6 +157,7 @@
   </div>
 </div>
 
+
   <div class="modal-content" id = "floor_dialog">
     <div class="modal-header">
       <h4 class="modal-title">Adding a new floor</h4>
@@ -163,7 +168,7 @@
           <input type = "text" id = "floor_name" name = "floor_name" />
         </form>
     </div>
-</div>
+  </div>
     <div id = "beacon_dialog" class="modal-content" >
       <div class="modal-header">
         <h4 class="modal-title">Adding a new beacon</h4>
@@ -212,6 +217,8 @@
   </div>
 </div>
 
+
+
   <script>
   "use strict"
   //global variables
@@ -241,20 +248,6 @@ jQuery(document).ready(function($) {
     var c = $('#floor_map');
     var ct = c.get(0).getContext('2d');
     var container = $(c).parent();
-
-    //Run function when browser resizes
-    $(window).resize( respondCanvas );
-
-    function respondCanvas(){
-        c.attr('width', $(container).width() ); //max width
-        c.attr('height', $(container).height() ); //max height
-
-        //Call a function to redraw other content (texts, images etc)
-    }
-
-    //Initial call
-    respondCanvas();
-
 
     $("#tdata_dialog").hide();
     $("#beacon_dialog").hide();
@@ -440,7 +433,9 @@ jQuery(document).ready(function($) {
             modal: true,
             closeOnEscape: false,
             open: function(event, ui) { $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
-                   $('.ui-dialog-buttonpane').addClass("modal-footer");},
+                   $('.ui-dialog-buttonpane').addClass("modal-footer");
+                 },
+
             buttons: {
              Cancel: function() {$(this).dialog("close");},
              Confirm: function() {
@@ -519,11 +514,11 @@ jQuery(document).ready(function($) {
                  $("#POI_name").val("");
                  var type = $("#POI_type").val();
                  $("#POI_type").empty();
-                 var symbol = new fabric.Rect({height:10, width:10,type:type, fill:'red',top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
+                 var symbol = new fabric.Rect({height:10, width:10, type:type, fill:'red',top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
                  canvas.add(symbol);
                  lock_symbol(symbol);
                  canvas.renderAll();
-                 var PoI = {name:name, top:y, left:x, id:id};
+                 var PoI = {name:name, top:y, left:x, id:id, type:type};
                  $("<li class='list-group-item'>"+PoI.name+'<i class="poi-remove badge">Remove</i>'+ "</li>").appendTo("ul.POI_list");
                  current_floor.POI.push(PoI);
                  $(this).dialog("close");
@@ -633,7 +628,7 @@ function unique_floor_name(name){
 
 //input is a fabric js image
 function scale_image(image){
-  var width = 600;
+  var width = 650;
   image.set({
     angle:0,
     padding:10,
@@ -679,7 +674,7 @@ function scale_image(image){
       closeOnEscape: false,
       open: function(event, ui) {
          $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
-         $('.ui-dialog-buttonpane').addClass('modal-footer');
+         $(".ui-dialog-buttonpane").addClass("modal-footer");
        },
       buttons: {
          Cancel: function() {$(this).dialog("close");},
@@ -714,48 +709,6 @@ function scale_image(image){
       },
 
     })
-/*
-    $("#floor_dialog").dialog({
-      buttons:[
-        {
-          text:"Cancel",
-          class:"btn-primary",
-          click: function(){$(this).dialog("close");}
-        },
-        {
-          text:"Confirm",
-          class:"btn-success",
-          click: function(){
-            if($("#floor_form").valid()){
-            var floor_name = $("#floor_name").val();
-            $("#floor_name").val("");
-            $('<li class = "list-group-item"><span class="handle glyphicon glyphicon-menu-hamburger"></span>    '
-                 +floor_name+ '<i class="js-remove badge">Remove</i>'+ '</li>').appendTo("ul.floor_list");
-            var floor_object = {
-              name:floor_name,
-              beacons:[],
-              training_data:[],
-              POI:[],
-              floor_map:null,
-              beacon_id:0,
-              tdata_id:0,
-              poi_id:0,
-            };
-            current_floor = floor_object;
-            floor_array.push(floor_object);
-            $("#image").prop('disabled', false);
-            console.log($("#floor_list li"));
-            $("#floor_list").find('li').removeClass("ui-selected");
-            var str_index = "#floor_list li:eq(" + (floor_array.length-1) + ")";
-            $(str_index).addClass("ui-selected");
-            console.log($("#floor_list li"));
-
-            $(this).dialog("close");
-          }}
-        }
-      ]
-    })
-*/
   }
   //toggle scripts
   function toggle_editlock(){
