@@ -44,15 +44,7 @@
     position:relative;
     box-sizing:border-box;
   }
-  .ui-widget-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #aaaaaa;
-    opacity: 0.3;
-  }
+
   .vertical_center{
     display: inline-block;
     vertical-align: middle;
@@ -80,7 +72,7 @@
         <ul id = "floor_list" class = "floor_list list-group"></ul>
       </div>
       <div class = "panel-footer">
-        <button id = "add_floor" class = "btn btn-primary" onclick="add_floor()" style="float:right;"> Add New Floor</button>
+        <button id = "add_floor" class = "btn btn-primary" style="float:right;"> Add New Floor</button>
         <div class="clearfix"></div>
       </div>
 
@@ -157,63 +149,103 @@
   </div>
 </div>
 
-
-  <div class="modal-content" id = "floor_dialog">
-    <div class="modal-header">
-      <h4 class="modal-title">Adding a new floor</h4>
-    </div>
-      <div class="modal-body">
-        <form id = "floor_form" method="get" action="">
-          <label>Enter the name of the floor here</label>
-          <input type = "text" id = "floor_name" name = "floor_name" />
-        </form>
+  <div class = "modal fade" id = "floor_dialog" role="dialog">
+    <div class = "modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Adding a new floor</h4>
+        </div>
+          <div class="modal-body" >
+            <div class = "form-group">
+            <form id = "floor_form">
+              <label>Enter the name of the floor here</label>
+              <input type = "text" id = "floor_name" name = "floor_name" />
+            </form>
+          </div>
+        </div>
+        <div class = "modal-footer">
+          <button class = "btn btn-default" data-dismiss="modal" onclick="clear_input('#floor_name')"> Cancel </button>
+          <button class = "btn btn-default" onclick="add_floor()"> Confirm </button>
+        </div>
+      </div>
     </div>
   </div>
-    <div id = "beacon_dialog" class="modal-content" >
-      <div class="modal-header">
-        <h4 class="modal-title">Adding a new beacon</h4>
-      </div>
-        <div class="modal-body">
-      <form id = "beacon_form" method="get" action="">
-        <label> Enter the name of the beacon: </label>
-        <input type = "text" id = "beacon_name" name = "beacon_name" />
-      </form>
-    </div>
-    </div>
 
-    <div id = "tdata_dialog" class="modal-content" >
+  <div class = "modal fade" id = "beacon_dialog">
+    <div class = "modal-dialog modal-sm">
+      <div class="modal-content" >
+        <div class="modal-header">
+          <h4 class="modal-title">Adding a new beacon</h4>
+        </div>
+        <div class = "form-group">
+          <div class="modal-body">
+            <form id = "beacon_form" method="get" action="">
+              <label> Enter the name of the beacon: </label>
+              <input type = "text" id = "beacon_name" name = "beacon_name" />
+            </form>
+          </div>
+        </div>
+        <div class = "modal-footer">
+          <button class = "btn btn-default" data-dismiss="modal" onclick="clear_input('#beacon_name')"> Cancel </button>
+          <button class = "btn btn-default" onclick="add_beacon()"> Confirm </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class = "modal fade"  id = "tdata_dialog">
+    <div class = "modal-dialog modal-sm">
+    <div class="modal-content" >
       <div class="modal-header">
         <h4 class="modal-title">Adding new training data</h4>
       </div>
-            <div class="modal-body">
-      <ul id = "enter_tdata_list" name = "enter_tdata_list" class = "enter_tdata_list"></ul>
-      <form id = "tdata_form" method="get" action="">
-        <label for"tdata_name"> Beacon detected: </label>
-        <input type = "text" id = "tdata_name" name = "tdata_name" />
-        <label for="rssi_value"> RSSI for that beacon: </label>
-        <input type = "integer" id = "rssi_value" name = "rssi_value" />
-      </form>
+      <div class="modal-body">
+        <ul id = "enter_tdata_list" name = "enter_tdata_list" class = "enter_tdata_list list-group"></ul>
+        <div class = "form-group">
+          <form id = "tdata_form" method="get" action="">
+            <label for"tdata_name"> Beacon detected: </label>
+            <input type = "text" id = "tdata_name" name = "tdata_name" />
+            <label for="rssi_value"> RSSI for that beacon: </label>
+            <input type = "integer" id = "rssi_value" name = "rssi_value" />
+          </form>
+        </div>
+      </div>
+      <div class = "modal-footer">
+        <button class = "btn btn-default" onclick="add_tdata_list()"> Add </button>
+        <button class = "btn btn-default" data-dismiss="modal" onclick="clear_input('#rssi_value');clear_input('#tdata_name')"> Cancel </button>
+        <button class = "btn btn-default" onclick="add_tdata()"> Confirm </button>
+      </div>
     </div>
   </div>
+  </div>
 
-    <div id = "POI_dialog" class="modal-content" >
+<div class = "modal fade" id = "POI_dialog">
+  <div class = "modal-dialog modal-sm">
+    <div  class="modal-content" >
       <div class="modal-header">
         <h4 class="modal-title">Adding a new point of interest</h4>
       </div>
-            <div class="modal-body">
-      <form id = "POI_form">
-        <label> Enter the name of the point of interest </label>
-        <input type = "text" id ="POI_name" name = "POI_name"/>
-        <label> Select the type of interest </label>
-        <select id = "POI_select" name = "POI_select">
-          <option value = "Room">Room</option>
-          <option value = "Stairs">Stairs</option>
-          <option value = "Toilet">Toilet</option>
-          <option value = "Dining">Dining</option>
-          <option value = "Entrance/Exit"> Entrance/Exit </option>
-        </select>
-      </form>
+        <div class="modal-body">
+      <div class = "form-group">
+        <form id = "POI_form">
+          <label> Enter the name of the point of interest </label>
+          <input type = "text" id ="POI_name" name = "POI_name"/>
+          <label> Select the type of interest </label>
+          <select id = "POI_select" name = "POI_select">
+            <option value = "Room">Room</option>
+            <option value = "Stairs">Stairs</option>
+            <option value = "Toilet">Toilet</option>
+            <option value = "Dining">Dining</option>
+            <option value = "Entrance/Exit"> Entrance/Exit </option>
+          </select>
+        </form>
+      </div>
     </div>
+    <div class = "modal-footer">
+      <button class = "btn btn-default" data-dismiss="modal" onclick="clear_input('#POI_name')"> Cancel </button>
+      <button class = "btn btn-default" onclick ="add_POI()"> Confirm </button>
+    </div>
+  </div>
   </div>
 </div>
 
@@ -249,10 +281,14 @@ jQuery(document).ready(function($) {
     var ct = c.get(0).getContext('2d');
     var container = $(c).parent();
 
-    $("#tdata_dialog").hide();
-    $("#beacon_dialog").hide();
-    $("#floor_dialog").hide();
-    $("#POI_dialog").hide();
+    $("#add_floor").click(function(){
+      $("#floor_dialog").modal('toggle');
+    })
+    $("#floor_dialog").modal('hide');
+    $("#beacon_dialog").modal('hide');
+    $("#tdata_dialog").modal('hide');
+    $("#POI_dialog").modal('hide');
+
     $("#floor_list").sortable({
       handle:".handle",
       start: function(event, ui) {
@@ -419,6 +455,82 @@ jQuery(document).ready(function($) {
     clear_canvas();
   }
 
+  function clear_input(id){
+    $(id).val('');
+  }
+
+  function add_beacon(){
+    console.log($("#beacon_dialog"));
+    if($("#beacon_form").valid()){
+      var x = $("#beacon_dialog").data("x");
+      var y = $("#beacon_dialog").data("y");
+      var name = $("#beacon_name").val();
+      $("#beacon_name").val("");
+      if(unique_beacon_name(name)){
+        var id = 'bc' + current_floor.beacon_id++;
+        var symbol = new fabric.Circle({radius:5, fill:'green',top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
+        canvas.add(symbol);
+        lock_symbol(symbol);
+
+        canvas.renderAll();
+        var beacon = {name:name, top:y, left:x, id:id};
+        $("<li class='list-group-item'>"+beacon.name+ '<i class="beacon-remove badge">Remove</i>'+ "</li>").appendTo("ul.beacon_list");
+        current_floor.beacons.push(beacon);
+        $("#beacon_dialog").modal('toggle');
+      }else{
+        alert("beacon name entered already exists!");
+     }
+   }
+  }
+
+ function add_tdata_list(){
+   if($("#tdata_form").valid()){
+     tdata_entry[$("#tdata_name").val()] = $("#rssi_value").val();
+     $("<li class='list-group-item'>"+$("#tdata_name").val() +": " + $("#rssi_value").val() + '<i class="enter_tdata_remove badge">Remove</i>'+ "</li>").appendTo("ul.enter_tdata_list");
+     $("#tdata_name").val("");
+     $("#rssi_value").val('');
+   }
+ }
+
+ function add_tdata(){
+   if(Object.keys(tdata_entry).length==0){
+     alert("there is no data to enter!");
+   } else {
+     var x = $("#tdata_dialog").data("x");
+     var y = $("#tdata_dialog").data("y");
+     var id = 'td' + current_floor.tdata_id++;
+     var symbol = new fabric.Triangle({width:10, height:10, fill:'blue', top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
+     canvas.add(symbol);
+     lock_symbol(symbol);
+     canvas.renderAll();
+     var tdata = {top:y, left:x, id:id, data:tdata_entry};
+     $("<li class='list-group-item'>(X:"+x+", Y:"+y+")" + '<i class="data-remove badge">Remove</i>'+ "</li>").appendTo("ul.data_list");
+     current_floor.training_data.push(tdata);
+     tdata_entry = {};
+     $("#enter_tdata_list").empty();
+     $("#tdata_dialog").modal('toggle');
+   }
+ }
+ function add_POI(){
+   if($("#POI_form").valid()){
+     var x = $("#POI_dialog").data("x");
+     var y = $("#POI_dialog").data("y");
+     var id = 'poi' + current_floor.poi_id++;
+     var name = $("#POI_name").val();
+     $("#POI_name").val("");
+     var type = $("#POI_select").val();
+     var symbol = new fabric.Rect({height:10, width:10, type:type, fill:'red',top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
+     canvas.add(symbol);
+     lock_symbol(symbol);
+     canvas.renderAll();
+     var PoI = {name:name, top:y, left:x, id:id, type:type};
+     $("<li class='list-group-item'>"+PoI.name+'<i class="poi-remove badge">Remove</i>'+ "</li>").appendTo("ul.POI_list");
+     current_floor.POI.push(PoI);
+     $("#POI_dialog").modal('toggle');
+     console.log(current_floor.POI);
+   }
+ }
+
   canvas.on('mouse:down', function(options){
     var symbol = null;
     if (options.target){
@@ -429,103 +541,19 @@ jQuery(document).ready(function($) {
       switch (+status) {
         case 0:break;
         case 1:
-          $("#beacon_dialog").dialog({
-            modal: true,
-            closeOnEscape: false,
-            open: function(event, ui) { $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
-                   $('.ui-dialog-buttonpane').addClass("modal-footer");
-                 },
-
-            buttons: {
-             Cancel: function() {$(this).dialog("close");},
-             Confirm: function() {
-               if($("#beacon_form").valid()){
-                 var name = $("#beacon_name").val();
-                 $("#beacon_name").val("");
-                 if(unique_beacon_name(name)){
-                   var id = 'bc' + current_floor.beacon_id++;
-                   var symbol = new fabric.Circle({radius:5, fill:'green',top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
-                   canvas.add(symbol);
-                   lock_symbol(symbol);
-
-                   canvas.renderAll();
-                   var beacon = {name:name, top:y, left:x, id:id};
-                   $("<li class='list-group-item'>"+beacon.name+ '<i class="beacon-remove badge">Remove</i>'+ "</li>").appendTo("ul.beacon_list");
-                   current_floor.beacons.push(beacon);
-                   $(this).dialog("close");
-                 }else{
-                   alert("beacon name entered already exists!");
-              }
-             }
-            },
-          }});
+          $("#beacon_dialog").data("x",x);
+          $("#beacon_dialog").data("y",y);
+          $("#beacon_dialog").modal('toggle');
           break;
         case 2:
-          $("#tdata_dialog").dialog({
-            modal: true,
-            closeOnEscape: false,
-            open: function(event, ui) { $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
-                   $('.ui-dialog-buttonpane').addClass('modal-footer');},
-            buttons: {
-              Add: function(){
-                  if($("#tdata_form").valid()){
-                    tdata_entry[$("#tdata_name").val()] = $("#rssi_value").val();
-                    $("<li class='list-group-item'>"+$("#tdata_name").val() +": " + $("#rssi_value").val() + '<i class="enter_tdata_remove badge">Remove</i>'+ "</li>").appendTo("ul.enter_tdata_list");
-                    $("#tdata_name").val("");
-                    $("#rssi_value").val(0);
-                  }
-              },
-               Cancel: function() {
-                 tdata_entry = {};
-                 $(this).dialog("close");
-               },
-               Confirm: function() {
-                 if(Object.keys(tdata_entry).length==0){
-                   alert("there is no data to enter!");
-                 } else {
-                   var id = 'td' + current_floor.tdata_id++;
-                   var symbol = new fabric.Triangle({width:10, height:10, fill:'blue', top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
-                   canvas.add(symbol);
-                   lock_symbol(symbol);
-                   canvas.renderAll();
-                   var tdata = {top:y, left:x, id:id, data:tdata_entry};
-                   $("<li class='list-group-item'>(X:"+x+", Y:"+y+")" + '<i class="data-remove badge">Remove</i>'+ "</li>").appendTo("ul.data_list");
-                   current_floor.training_data.push(tdata);
-                   tdata_entry = {};
-                   $("#enter_tdata_list").empty();
-                   $(this).dialog("close");
-                 }
-                }
-              },
-            });
+          $("#tdata_dialog").data("x",x);
+          $("#tdata_dialog").data("y",y);
+          $("#tdata_dialog").modal('toggle');
             break;
         case 3:
-          $("#POI_dialog").dialog({
-            modal: true,
-            closeOnEscape: false,
-            open: function(event, ui) { $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
-                   $('.ui-dialog-buttonpane').addClass('modal-footer');},
-            buttons: {
-             Cancel: function() {$(this).dialog("close");},
-             Confirm: function() {
-               if($("#POI_form").valid()){
-                 var id = 'poi' + current_floor.poi_id++;
-                 var name = $("#POI_name").val();
-                 $("#POI_name").val("");
-                 var type = $("#POI_type").val();
-                 $("#POI_type").empty();
-                 var symbol = new fabric.Rect({height:10, width:10, type:type, fill:'red',top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
-                 canvas.add(symbol);
-                 lock_symbol(symbol);
-                 canvas.renderAll();
-                 var PoI = {name:name, top:y, left:x, id:id, type:type};
-                 $("<li class='list-group-item'>"+PoI.name+'<i class="poi-remove badge">Remove</i>'+ "</li>").appendTo("ul.POI_list");
-                 current_floor.POI.push(PoI);
-                 $(this).dialog("close");
-               }
-             }
-            },
-          });
+          $("#POI_dialog").data("x",x);
+          $("#POI_dialog").data("y",y);
+          $("#POI_dialog").modal('toggle');
           break;
         default:
           break;
@@ -669,46 +697,34 @@ function scale_image(image){
   }
 
   function add_floor(){
-    $("#floor_dialog").dialog({
-      modal: true,
-      closeOnEscape: false,
-      open: function(event, ui) {
-         $(".ui-dialog-titlebar-close", ui.dialog | ui).hide();
-         $(".ui-dialog-buttonpane").addClass("modal-footer");
-       },
-      buttons: {
-         Cancel: function() {$(this).dialog("close");},
-         Confirm: function() {
-           if($("#floor_form").valid()){
-           var floor_name = $("#floor_name").val();
-           $("#floor_name").val("");
-           if(unique_floor_name(floor_name)){
-             $('<li class = "list-group-item"><span class="handle glyphicon glyphicon-menu-hamburger"></span>    '
-                  +floor_name+ '<i class="js-remove badge">Remove</i>'+ '</li>').appendTo("ul.floor_list");
-             var floor_object = {
-               name:floor_name,
-               beacons:[],
-               training_data:[],
-               POI:[],
-               floor_map:null,
-               beacon_id:0,
-               tdata_id:0,
-               poi_id:0,
-             };
-             current_floor = floor_object;
-             floor_array.push(floor_object);
-             $("#image").prop('disabled', false);
-        //     $("#floor_list").find('li').removeClass("ui-selected");
-          //   var str_index = "#floor_list li:eq(" + (floor_array.length-1) + ")";
-            // $(str_index).addClass("ui-selected");
-             $(this).dialog("close");
-         } else {
-          alert("floor name entered already exists!");
-        }}
-       }
-      },
-
-    })
+    {
+      if($("#floor_form").valid()){
+      var floor_name = $("#floor_name").val();
+      $("#floor_name").val("");
+      if(unique_floor_name(floor_name)){
+        $('<li class = "list-group-item"><span class="handle glyphicon glyphicon-menu-hamburger"></span>    '
+             +floor_name+ '<i class="js-remove badge">Remove</i>'+ '</li>').appendTo("ul.floor_list");
+        var floor_object = {
+          name:floor_name,
+          beacons:[],
+          training_data:[],
+          POI:[],
+          floor_map:null,
+          beacon_id:0,
+          tdata_id:0,
+          poi_id:0,
+        };
+        current_floor = floor_object;
+        floor_array.push(floor_object);
+        $("#image").prop('disabled', false);
+    //     $("#floor_list").find('li').removeClass("ui-selected");
+     //   var str_index = "#floor_list li:eq(" + (floor_array.length-1) + ")";
+       // $(str_index).addClass("ui-selected");
+        $("#floor_dialog").modal('hide');
+    } else {
+     alert("floor name entered already exists!");
+    }}
+    }
   }
   //toggle scripts
   function toggle_editlock(){
