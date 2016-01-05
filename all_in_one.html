@@ -5,8 +5,6 @@
   <script src = "https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.5.0/fabric.js"></script>
   <script src="http://rubaxa.github.io/Sortable/Sortable.js"></script>
   <script src = "dentist.js"></script>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <style>
   #feedback { font-size: 1.4em; }
   #floor_list .ui-selected { background: #F39814; color: black; }
@@ -51,10 +49,21 @@
     float: none;
   }
 
-  canvas{
+  .canvas_container{
     width: 100%;
     max-width: 800px;
     height: auto;
+    min-width:400px;
+  }
+
+  .min_width6{
+    min-width:450px;
+  }
+  .min_width3{
+    min-width:200px;
+  }
+  .min_width12{
+    min-width:950px;
   }
 
   </style>
@@ -69,9 +78,9 @@
 </head>
 
 <body>
-<div id = "all" class ="container-fluid">
-  <div class = "row">
-    <div id = "floor_list_div" class=" panel panel-default col-lg-3">
+<div id = "all" class =" container-fluid min_width12">
+  <div class = "row-fluid">
+    <div id = "floor_list_div" class=" panel panel-default col-xs-3 min_width3">
       <h2 class = "panel-heading text-center">
          Floor List
        </h2>
@@ -85,9 +94,9 @@
 
     </div>
 
-    <div id = "middle_panel" class=" col-lg-6 panel panel-default fill_all ">
+    <div id = "middle_panel" class=" col-xs-6 panel panel-default fill_all min_width6">
       <div id = "canvas_div" class = "panel-body " >
-        <canvas id = "floor_map" class = " center-block" height="600" width="650"  style = "border:1px solid"></canvas>
+        <canvas id = "floor_map" class = " center-block" style = "border:1px solid"></canvas>
         <input id = "image" type = "file" accept = "image/*">
       </div>
       <div id = "toggle_div" class = " panel-footer text-center" display = "inline-block">
@@ -102,7 +111,7 @@
       </div>
   </div>
 
-<div class ="panel panel-default  col-lg-3">
+<div class ="panel panel-default  col-xs-3 min_width3">
   <div class = "panel-group" id = "lists" style="height:80%; ">
     <div id = "beacon_list_div" class = "panel panel-default">
       <div class="panel-heading">
@@ -134,28 +143,29 @@
       </div>
     </div>
 
-    <div id = "POI_list_div" class = "panel panel-default">
-      <div class="panel-heading">
-        <h2 class="panel-title text-center">
-          <a data-toggle="collapse" data-parent="#lists" href="#collapseThree">
-            Points of interests List
-          </a>
-        </h2>
-      </div>
-      <div id="collapseThree" class="panel-collapse collapse">
-        <div class = "panel-body fill">
-          <ul id = "POI_list" class = "POI_list list-group"></ul>
+      <div id = "POI_list_div" class = "panel panel-default">
+        <div class="panel-heading">
+          <h2 class="panel-title text-center">
+            <a data-toggle="collapse" data-parent="#lists" href="#collapseThree">
+              Points of interests List
+            </a>
+          </h2>
         </div>
+          <div id="collapseThree" class="panel-collapse collapse">
+            <div class = "panel-body fill">
+              <ul id = "POI_list" class = "POI_list list-group"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class = "panel-footer">
+        <button id = "confirm" onclick="send_data()" class = "btn btn-success" style = "float:right;"> Confirm</button>
+        <button id = "help" onclick ="help()" class = "btn btn-info" style = "float:right"> Help</button>
+        <div class="clearfix"></div>
       </div>
     </div>
   </div>
-  <div class = "panel-footer">
-    <button id = "confirm" onclick="send_data()" class = "btn btn-success" style = "float:right;"> Confirm</button>
-    <button id = "help" onclick ="help()" class = "btn btn-info" style = "float:right"> Help</button>
-    <div class="clearfix"></div>
-  </div>
 </div>
-
   <div class = "modal fade" id = "floor_dialog" role="dialog">
     <div class = "modal-dialog modal-sm">
       <div class="modal-content">
@@ -216,14 +226,14 @@
             <input type = "integer" id = "rssi_value" name = "rssi_value" />
         </div>
       </div>
-      <div class = "modal-footer">
-        <input type ="button" class = "btn btn-default" onclick="add_tdata_list()" value = "Add"/>
-        <input type ="button" class = "btn btn-default" data-dismiss="modal" onclick="clear_input('#rssi_value');clear_input('#tdata_name')"value="Cancel"/>
-        <input type = "submit" class = "btn btn-default" onclick="add_tdata()" value = "Confirm">
+            <div class = "modal-footer">
+              <input type ="submit" class = "btn btn-default" onclick="add_tdata_list()" value = "Add"/>
+              <input type ="button" class = "btn btn-default" data-dismiss="modal" onclick="clear_input('#rssi_value');clear_input('#tdata_name')"value="Cancel"/>
+              <input type = "button" class = "btn btn-default" onclick="add_tdata()" value = "Confirm">
+            </div>
+          </form>
+        </div>
       </div>
-    </form>
-    </div>
-  </div>
   </div>
 
 <div class = "modal fade" id = "POI_dialog">
@@ -234,25 +244,25 @@
       </div>
         <div class="modal-body">
           <div class = "form-group">
-            <form id = "POI_form" method="get" action="">
+            <form id = "POI_form" method="get" action="" onsubmit="return false">
               <label> Enter the name of the point of interest </label>
               <input type = "text" id ="POI_name" name = "POI_name"/>
               <label> Select the type of interest </label>
               <select id = "POI_select" name = "POI_select">
-                <option value = "Room">Room</option>
-                <option value = "Stairs">Stairs</option>
-                <option value = "Toilet">Toilet</option>
-                <option value = "Dining">Dining</option>
-                <option value = "Entrance/Exit"> Entrance/Exit </option>
+                <option value = "Room"/>Room</option>
+                <option value = "Stairs"/>Stairs</option>
+                <option value = "Toilet"/>Toilet</option>
+                <option value = "Dining"/>Dining</option>
+                <option value = "Entrance/Exit"/> Entrance/Exit </option>
               </select>
           </div>
         </div>
-    <div class = "modal-footer">
-      <input type ="button" class = "btn btn-default" data-dismiss="modal" onclick="clear_input('#POI_name')" value = "Cancel"/>
-      <input type = "submit" class = "btn btn-default" onclick ="add_POI()" value = "Confirm" />
+            <div class = "modal-footer">
+              <input type ="button" class = "btn btn-default" data-dismiss="modal" onclick="clear_input('#POI_name')" value = "Cancel"/>
+              <input type = "submit" class = "btn btn-default" onclick ="add_POI()" value = "Confirm"/>
+            </div>
+          </form>
     </div>
-  </form>
-  </div>
   </div>
 </div>
 
@@ -275,6 +285,8 @@
   var box_y;
   var tdata_entry = {};
 
+
+
 jQuery(document).ready(function($) {
     $("#image").prop('disabled', 'true');
     var url = "http://178.62.124.27/start_config?buildingNameInput=fda&namespaceInput=dfsa&buildingHeight=20&buildingWidth=30";
@@ -291,6 +303,23 @@ jQuery(document).ready(function($) {
     $("#beacon_dialog").modal('hide');
     $("#tdata_dialog").modal('hide');
     $("#POI_dialog").modal('hide');
+
+    var resizeTimeout;
+    $(window).resize(function(){
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function(){
+          var real_width = $("#floor_map").width();
+          var supposed_size = get_canvas_size();
+          if (real_width != supposed_size[0]){
+            rescale_canvas(supposed_size);
+          }
+        }, 100);
+    });
+
+    var canvas_size = get_canvas_size();
+    console.log(canvas_size);
+    canvas.setHeight(canvas_size[1]);
+    canvas.setWidth(canvas_size[0]);
 
     $("#floor_list").sortable({
       handle:".handle",
@@ -318,7 +347,7 @@ jQuery(document).ready(function($) {
           $( ".ui-selected", this ).each(function() {
             var index = $( "#floor_list li" ).index( this );
             current_floor = floor_array[index];
-            clear_canvas();
+            clear_floor();
             update_floor();
           });
         },
@@ -455,7 +484,7 @@ jQuery(document).ready(function($) {
     current_floor.poi_id = 0;
     current_floor.floor_id = 0;
     current_floor.floor_map = null;
-    clear_canvas();
+    clear_floor();
   }
 
   function clear_input(id){
@@ -480,6 +509,7 @@ jQuery(document).ready(function($) {
         $("<li class='list-group-item'>"+beacon.name+ '<i class="beacon-remove badge">Remove</i>'+ "</li>").appendTo("ul.beacon_list");
         current_floor.beacons.push(beacon);
         $("#beacon_dialog").modal('toggle');
+        console.log(beacon.width, beacon.height);
       }else{
         alert("beacon name entered already exists!");
      }
@@ -515,6 +545,7 @@ jQuery(document).ready(function($) {
    }
  }
  function add_POI(){
+   console.log("got here");
    if($("#POI_form").valid()){
      var x = $("#POI_dialog").data("x");
      var y = $("#POI_dialog").data("y");
@@ -590,13 +621,24 @@ function unique_floor_name(name){
   }
   return true;
 }
-
+/*
+function enlarge_object(obj){
+  swtich(obj.type){
+    case "Triangle":
+    case "Circle":
+    case "Rect":
+    default:break;
+  }
+  canvas.setActiveObject();
+  canvas.renderAll();
+}
+*/
 //called when a new floor is selected
   function update_floor(){
     //if there isnt a map then there's no data
     if(current_floor.floor_map != null){
       var new_background = new fabric.Image(current_floor.floor_map);
-      scale_image(new_background);
+      scale_image(new_background, canvas.width);
       canvas.setHeight(new_background.height);
       canvas.setWidth(new_background.width);
       add_grid_lines(new_background.width, new_background.height);
@@ -643,7 +685,7 @@ function unique_floor_name(name){
       imgObj.src = event.target.result;
       imgObj.onload = function() {
         var image = new fabric.Image(imgObj);
-        scale_image(image);
+        scale_image(image,canvas.width);
         canvas.setHeight(image.height);
         canvas.setWidth(image.width);
         add_grid_lines(image.width, image.height);
@@ -658,8 +700,7 @@ function unique_floor_name(name){
 
 
 //input is a fabric js image
-function scale_image(image){
-  var width = 650;
+function scale_image(image, width){
   image.set({
     angle:0,
     padding:10,
@@ -667,7 +708,65 @@ function scale_image(image){
     height:(building_height/building_width).toFixed(1)*width,
     width:width
   })
+}
 
+function rescale_canvas(size){
+  if(has_background_image()){
+    console.log("rescaled!");
+    var new_background_img = canvas.backgroundImage;
+    scale_image(new_background_img,size[0]);
+    canvas.backgroundImage = null;
+    canvas.clear().renderAll;
+    canvas.setWidth(new_background_img.width);
+    canvas.setHeight(new_background_img.height);
+    canvas.setBackgroundImage(new_background_img);
+    for(var i = 0; i < current_floor.beacons.length; i++){
+      var beacon = current_floor.beacons[i];
+      var symbol = new fabric.Circle({radius:5, fill:'green',top:grid_to_pixel_y(beacon.top), left:grid_to_pixel_x(beacon.left), id:beacon.id});
+      canvas.add(symbol);
+      lock_symbol(symbol);
+    }
+    for(var i = 0; i < current_floor.training_data.length; i++){
+      var tdata = current_floor.training_data[i];
+      var symbol = new fabric.Triangle({width:10,height:10, fill:'blue',top:grid_to_pixel_y(tdata.top), left:grid_to_pixel_x(tdata.left), id:tdata.id});
+      canvas.add(symbol);
+      lock_symbol(symbol);
+    }
+    for(var i = 0; i< current_floor.POI.length;i++){
+      var poi = current_floor.POI[i];
+      var symbol = new fabric.Rect({width:10, height:10, fill:"red", top:grid_to_pixel_y(poi.top), left:grid_to_pixel_x(poi.left), id:poi.id});
+      lock_symbol(symbol);
+      canvas.add(symbol);
+    }
+    add_grid_lines(new_background_img.width, new_background_img.height);
+    canvas.renderAll();
+  } else {
+    canvas.setWidth(size[0]);
+    canvas.setHeight(size[1]);
+  }
+}
+
+function get_canvas_size(){
+  var canvas_container_width = $("#middle_panel").width();
+  console.log(canvas_container_width);
+  if(canvas_container_width > 1200) return [1200,800];
+  else if (canvas_container_width > 800) return[800,600];
+  else if (canvas_container_width >650) return [650,500];
+  else if (canvas_container_width > 500) return[500,400];
+  else return [400,300];
+}
+
+function pixel_to_grid_x(x){
+  return Math.floor(x/(canvas.width/box_x));
+}
+function pixel_to_grid_y(y){
+  return Math.floor(y/(canvas.height/box_y));
+}
+function grid_to_pixel_x(x){
+  return Math.round((x+0.5)*(canvas.width/box_x).toFixed(2)-5);
+}
+function grid_to_pixel_y(y){
+  return Math.round((y+0.5)*(canvas.height/box_y).toFixed(2)-5);
 }
   //floor list script
 
@@ -686,12 +785,12 @@ function scale_image(image){
          var str_index = "#floor_list li:eq(" + (floor_array.length-1) + ")";
          $(str_index).addClass("ui-selected");
        }
-      clear_canvas();
+      clear_floor();
     }}
   });
 
 //removes objects on the canvas and lists
-  function clear_canvas(){
+  function clear_floor(){
     canvas.backgroundImage = null;
     canvas.clear().renderAll;
     $("#beacon_list").empty();
@@ -853,18 +952,7 @@ function scale_image(image){
     } }
   });
 
-  function pixel_to_grid_x(x){
-    return Math.floor(x/(canvas.width/box_x));
-  }
-  function pixel_to_grid_y(y){
-    return Math.floor(y/(canvas.height/box_y));
-  }
-  function grid_to_pixel_x(x){
-    return Math.round((x+0.5)*(canvas.width/box_x).toFixed(2)-5);
-  }
-  function grid_to_pixel_y(y){
-    return Math.round((y+0.5)*(canvas.height/box_y).toFixed(2)-5);
-  }
+
 
   function send_data(){
     var url = "http://178.62.124.27/start_config?buildingNameInput=fda&namespaceInput=dfsa&buildingHeight=20&buildingWidth=30";
