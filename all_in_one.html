@@ -19,11 +19,6 @@
     width: 100%;
   }
 
-  canvas {
-    width: 100%;
-    height: auto;
-  }
-
   .red{
     background:red;
   }
@@ -55,6 +50,13 @@
     vertical-align: middle;
     float: none;
   }
+
+  canvas{
+    width: 100%;
+    max-width: 800px;
+    height: auto;
+  }
+
   </style>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
@@ -84,8 +86,8 @@
     </div>
 
     <div id = "middle_panel" class=" col-lg-6 panel panel-default fill_all ">
-      <div id = "canvas_div" class = "panel-body container" >
-        <canvas id = "floor_map" class = "img-responsive center-block"  style = "border:1px solid"></canvas>
+      <div id = "canvas_div" class = "panel-body " >
+        <canvas id = "floor_map" class = " center-block" height="600" width="650"  style = "border:1px solid"></canvas>
         <input id = "image" type = "file" accept = "image/*">
       </div>
       <div id = "toggle_div" class = " panel-footer text-center" display = "inline-block">
@@ -164,14 +166,14 @@
             <div class = "form-group">
             <form id = "floor_form">
               <label>Enter the name of the floor here</label>
-              <input type = "text" id = "floor_name" name = "floor_name" />
-            </form>
+              <input type = "text; button" id = "floor_name" name = "floor_name" />
           </div>
         </div>
-        <div class = "modal-footer">
-          <button class = "btn btn-default" data-dismiss="modal" onclick="clear_input('#floor_name')"> Cancel </button>
-          <button class = "btn btn-default" onclick="add_floor()"> Confirm </button>
-        </div>
+            <div class = "modal-footer">
+              <input type="button" class = "btn btn-default" data-dismiss="modal" onclick="clear_input('#floor_name')"value="Cancel"/>
+              <input type = "submit" class = "btn btn-default" onclick="add_floor()" value = "Confirm"/>
+            </div>
+          </form>
       </div>
     </div>
   </div>
@@ -187,13 +189,13 @@
             <form id = "beacon_form" method="get" action="">
               <label> Enter the name of the beacon: </label>
               <input type = "text" id = "beacon_name" name = "beacon_name" />
-            </form>
           </div>
         </div>
         <div class = "modal-footer">
-          <button class = "btn btn-default" data-dismiss="modal" onclick="clear_input('#beacon_name')"> Cancel </button>
-          <button class = "btn btn-default" onclick="add_beacon()"> Confirm </button>
+          <input type = "button" class = "btn btn-default" data-dismiss="modal" onclick="clear_input('#beacon_name')" value = "Cancel"/>
+          <input type = "submit" class = "btn btn-default" onclick="add_beacon()" value = "Confirm"/>
         </div>
+      </form>
       </div>
     </div>
   </div>
@@ -212,14 +214,14 @@
             <input type = "text" id = "tdata_name" name = "tdata_name" />
             <label for="rssi_value"> RSSI for that beacon: </label>
             <input type = "integer" id = "rssi_value" name = "rssi_value" />
-          </form>
         </div>
       </div>
       <div class = "modal-footer">
-        <button class = "btn btn-default" onclick="add_tdata_list()"> Add </button>
-        <button class = "btn btn-default" data-dismiss="modal" onclick="clear_input('#rssi_value');clear_input('#tdata_name')"> Cancel </button>
-        <button class = "btn btn-default" onclick="add_tdata()"> Confirm </button>
+        <input type ="button" class = "btn btn-default" onclick="add_tdata_list()" value = "Add"/>
+        <input type ="button" class = "btn btn-default" data-dismiss="modal" onclick="clear_input('#rssi_value');clear_input('#tdata_name')"value="Cancel"/>
+        <input type = "submit" class = "btn btn-default" onclick="add_tdata()" value = "Confirm">
       </div>
+    </form>
     </div>
   </div>
   </div>
@@ -231,25 +233,25 @@
         <h4 class="modal-title">Adding a new point of interest</h4>
       </div>
         <div class="modal-body">
-      <div class = "form-group">
-        <form id = "POI_form">
-          <label> Enter the name of the point of interest </label>
-          <input type = "text" id ="POI_name" name = "POI_name"/>
-          <label> Select the type of interest </label>
-          <select id = "POI_select" name = "POI_select">
-            <option value = "Room">Room</option>
-            <option value = "Stairs">Stairs</option>
-            <option value = "Toilet">Toilet</option>
-            <option value = "Dining">Dining</option>
-            <option value = "Entrance/Exit"> Entrance/Exit </option>
-          </select>
-        </form>
-      </div>
-    </div>
+          <div class = "form-group">
+            <form id = "POI_form" method="get" action="">
+              <label> Enter the name of the point of interest </label>
+              <input type = "text" id ="POI_name" name = "POI_name"/>
+              <label> Select the type of interest </label>
+              <select id = "POI_select" name = "POI_select">
+                <option value = "Room">Room</option>
+                <option value = "Stairs">Stairs</option>
+                <option value = "Toilet">Toilet</option>
+                <option value = "Dining">Dining</option>
+                <option value = "Entrance/Exit"> Entrance/Exit </option>
+              </select>
+          </div>
+        </div>
     <div class = "modal-footer">
-      <button class = "btn btn-default" data-dismiss="modal" onclick="clear_input('#POI_name')"> Cancel </button>
-      <button class = "btn btn-default" onclick ="add_POI()"> Confirm </button>
+      <input type ="button" class = "btn btn-default" data-dismiss="modal" onclick="clear_input('#POI_name')" value = "Cancel"/>
+      <input type = "submit" class = "btn btn-default" onclick ="add_POI()" value = "Confirm" />
     </div>
+  </form>
   </div>
   </div>
 </div>
@@ -281,10 +283,6 @@ jQuery(document).ready(function($) {
     building_width = params.buildingWidth;
     box_x = building_width / grid_size;
     box_y  = building_height / grid_size;
-
-    var c = $('#floor_map');
-    var ct = c.get(0).getContext('2d');
-    var container = $(c).parent();
 
     $("#add_floor").click(function(){
       $("#floor_dialog").modal('toggle');
@@ -387,7 +385,7 @@ jQuery(document).ready(function($) {
       },
       messages:{
         beacon_name:{
-          required: "please enter a name for this floor",
+          required: "please enter a name for the beacon",
           minlength: "the minimum length of the name is 4",
         }
       }
@@ -404,7 +402,7 @@ jQuery(document).ready(function($) {
       },
       messages:{
         tdata_name:{
-          required: "please enter a name for this floor",
+          required: "please enter a name for this ",
           minlength: "the minimum length of the name is 4",
         },
         rssi_value:{
