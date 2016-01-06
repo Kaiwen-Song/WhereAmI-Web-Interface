@@ -10,17 +10,15 @@
   <style>
   #feedback { font-size: 1.4em; }
   #floor_list .ui-selected { background: #F39814; color: black; }
-  #beacon_list .ui-selected { background: #F39814; color: black; }
-  #data_list .ui-selected { background: #F39814; color: black; }
-
-  html,body{
-    margin: 0 auto;
-    height: 100%;
-    width: 100%;
+  #beacon_list .highlighted{
+    background: #F39814; color: black;
   }
+  #POI_list .highlighted{
+    background: #F39814; color: black;
+  }
+  #data_list .highlighted{
+    background: #F39814; color: black;
 
-  .red{
-    background:red;
   }
 
   div.scroll {
@@ -33,7 +31,7 @@
     box-sizing:border-box;
   }
   .fill_all{
-    height: 95vh;
+    height: 85vh;
     width: 100%;
     position:relative;
     box-sizing:border-box;
@@ -66,6 +64,9 @@
   }
   .min_width12{
     min-width:950px;
+  }
+  .list-group-item{
+    background:#F12341;
   }
 
   </style>
@@ -161,7 +162,7 @@
         </div>
       </div>
       <div class = "panel-footer">
-        <button id = "confirm" onclick="send_data()" class = "btn btn-success" style = "float:right;"> Confirm</button>
+        <button id = "confirm" onclick="$('#confirmation_dialog').modal('toggle')" class = "btn btn-success" style = "float:right;"> Confirm</button>
         <button id = "help" onclick ="help()" class = "btn btn-info" style = "float:right"> Help</button>
         <div class="clearfix"></div>
       </div>
@@ -268,7 +269,27 @@
   </div>
 </div>
 
-
+<div class = "modal fade" id = "confirmation_dialog">
+  <div class = "modal-dialog modal-sm">
+    <div class="modal-content" >
+      <div class="modal-header">
+        <h4 class="modal-title">Confirmation</h4>
+      </div>
+      <div class = "form-group">
+        <div class="modal-body">
+          <form id = "confirmation_form" method="get" action="">
+            <label> Finally, please enter an image for the building itself</label>
+            <input id = "building_image" type = "file" accept = "image/*">
+        </div>
+      </div>
+      <div class = "modal-footer">
+        <input type = "button" class = "btn btn-default" data-dismiss="modal" value = "Cancel"/>
+        <input type = "button" class = "btn btn-default" onclick="send_data()" value = "Confirm"/>
+      </div>
+    </form>
+    </div>
+  </div>
+</div>
 
   <script>
   "use strict"
@@ -286,17 +307,16 @@
   var box_x;
   var box_y;
   var tdata_entry = {};
-
-
+  var building_image;
+  var url;
+  var url_params;
+  var cached_building;
 
 jQuery(document).ready(function($) {
     $("#image").prop('disabled', 'true');
-    var url = "http://178.62.124.27/start_config?buildingNameInput=fda&namespaceInput=dfsa&buildingHeight=20&buildingWidth=30";
-    var params = url.extract();
-    building_height = params.buildingHeight;
-    building_width = params.buildingWidth;
-    box_x = building_width / grid_size;
-    box_y  = building_height / grid_size;
+    url = document.URL;
+    url_params = url.extract();
+
 
     $("#add_floor").click(function(){
       $("#floor_dialog").modal('toggle');
@@ -305,6 +325,33 @@ jQuery(document).ready(function($) {
     $("#beacon_dialog").modal('hide');
     $("#tdata_dialog").modal('hide');
     $("#POI_dialog").modal('hide');
+    $("#confirmation_dialog").modal('hide');
+
+    cached_building = JSON.parse(window.App.Data.cached_building);
+
+    if(cached_building!= null){
+      floor_array = cached_building.floors;
+      for(var i = 0; i < cached_building.images.length; i++){
+        floor_array[i].floor_map = new Image();
+        floor_array[i].floor_map.src = 'data:image/png;base64,'+images[i];
+        $('<li class = "list-group-item"><span class="handle glyphicon glyphicon-menu-hamburger"></span>    '
+             +floor_name+ '<i class="js-remove badge">Remove</i>'+ '</li>').appendTo("ul.floor_list");
+      }
+      building_image = new Image();
+      building_image.src = 'data:image/png;base64,'+cached_building.building_image;
+      building_height = cached_building.buildingHeight;
+      building_width = cached_building.buildingWidth;
+      box_x = cached_building.boxes_x;
+      box_y = cached_building.boxes_y;
+      if(floor_array.length != 0){
+        $("#image").prop('disabled', false);
+      }
+    } else {
+      building_height = url_params.buildingHeight;
+      building_width = url_params.buildingWidth;
+      box_x = building_width / grid_size;
+      box_y  = building_height / grid_size;
+    }
 
     var resizeTimeout;
     $(window).resize(function(){
@@ -347,6 +394,7 @@ jQuery(document).ready(function($) {
         selected: function(event, ui){
           console.log(ui);
           $( ".ui-selected", this ).each(function() {
+            console.log($(".ui-selected"));
             var index = $( "#floor_list li" ).index( this );
             current_floor = floor_array[index];
             clear_floor();
@@ -355,44 +403,43 @@ jQuery(document).ready(function($) {
         },
 
     });
-/*
-    $("#beacon_list").selectable({
-      selecting: function(event, ui){
-        if( $(".ui-selected, .ui-selecting").length > 1){
-            $(ui.selecting).removeClass("ui-selecting");
-          }
-      },
-      selected: function(){
-        $( ".ui-selected", this ).each(function() {
-          var index = $( "#beacon_list li" ).index( this );
-          var ind_on_canvas = findById(canvas.getObjects(), current_floor.beacons[index].id);
-          highlight_canvas_item(ind_on_canvas);
-        });
-      },
-      unselected:function(){
-        $( ".ui-selected", this ).each(function() {
-          var index = $( "#beacon_list li" ).index( this );
-          var ind_on_canvas = findById(canvas.getObjects(), current_floor.beacons[index].id);
-          unhighlight_canvas_item(ind_on_canvas);
-        });
+
+    $("#beacon_list").on("click", "li.list-group-item",function() {
+      var index = $(this).index();
+      if($(this).hasClass("highlighted")){
+        shrink_obj(find_canvas_obj(current_floor.beacons, index));
+        $(this).removeClass("highlighted");
+      } else {
+        $(".highlighted").removeClass("highlighted");
+        enlarge_obj(find_canvas_obj(current_floor.beacons, index));
+        $(this).addClass("highlighted");
       }
     });
 
-    $("#data_list").selectable({
-        selecting: function(event, ui){
-            if( $(".ui-selected, .ui-selecting").length > 1){
-              $(ui.selecting).removeClass("ui-selecting");
-            }
-        },
-        selected: function(){
-          $( ".ui-selected", this ).each(function() {
-            var index = $( "#data_list li" ).index( this );
-            canvas.getObjects();
-          });
-        }
+    $("#data_list").on("click", "li.list-group-item", function() {
+      var index = $(this).index();
+      if($(this).hasClass("highlighted")){
+        shrink_obj(find_canvas_obj(current_floor.training_data, index));
+        $(this).removeClass("highlighted");
+      } else {
+        $(".highlighted").removeClass("highlighted");
+        enlarge_obj(find_canvas_obj(current_floor.training_data, index));
+        $(this).addClass("highlighted");
+      }
 
     });
-*/
+    $("#POI_list").on("click", "li.list-group-item", function() {
+        var index = $(this).index();
+        if($(this).hasClass("highlighted")){
+          shrink_obj(find_canvas_obj(current_floor.POI, index));
+          $(this).removeClass("highlighted");
+        } else {
+          $(".highlighted").removeClass("highlighted");
+          enlarge_obj(find_canvas_obj(current_floor.POI, index));
+          $(this).addClass("highlighted");
+        }
+    });
+
     $("#floor_form").validate({
       rules: {
         floor_name:{
@@ -444,23 +491,27 @@ jQuery(document).ready(function($) {
     });
   });
 
-  function highlight_canvas_item(index){
-    canvas.highlighted = index;
-    var item = canvas.item(index);
-    item.scaleX = 2;
-    item.scaleY = 2;
+  function shrink_obj(item){
+    item.scaleX = 0.75;
+    item.scaleY = 0.75;
+    canvas.renderAll();
+  }
+
+  function find_canvas_obj(list, index){
+    var i = findById(canvas.getObjects(),list[index].id);
+    return canvas.item(i);
+  }
+
+  function enlarge_obj(item){
+    if(canvas.getActiveObject()!= null){
+      shrink_obj(canvas.getActiveObject());
+    }
+    item.scaleX = 4/3;
+    item.scaleY = 4/3;
     canvas.setActiveObject(item);
     canvas.renderAll();
   }
 
-  function unhighlight_canvas_item(index){
-    if(canvas.highlighted!= null){
-      var item = canvas.item(index);
-      item.scaleX = 0.5;
-      item.scaleY = 0.5;
-      canvas.renderAll();
-    }
-  }
 
   //canvas scripts
   var canvas = new fabric.Canvas("floor_map");
@@ -494,7 +545,6 @@ jQuery(document).ready(function($) {
   }
 
   function add_beacon(){
-    console.log($("#beacon_dialog"));
     if($("#beacon_form").valid()){
       var x = $("#beacon_dialog").data("x");
       var y = $("#beacon_dialog").data("y");
@@ -502,7 +552,7 @@ jQuery(document).ready(function($) {
       $("#beacon_name").val("");
       if(unique_beacon_name(name)){
         var id = 'bc' + current_floor.beacon_id++;
-        var symbol = new fabric.Circle({radius:5, fill:'green',top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
+        var symbol = new fabric.Circle({radius:5, fill:'green',top:grid_to_pixel_y(y), originX:"center", originY:"center", left:grid_to_pixel_x(x), id:id});
         canvas.add(symbol);
         lock_symbol(symbol);
 
@@ -511,7 +561,6 @@ jQuery(document).ready(function($) {
         $("<li class='list-group-item'>"+beacon.name+ '<i class="beacon-remove badge">Remove</i>'+ "</li>").appendTo("ul.beacon_list");
         current_floor.beacons.push(beacon);
         $("#beacon_dialog").modal('toggle');
-        console.log(beacon.width, beacon.height);
       }else{
         alert("beacon name entered already exists!");
      }
@@ -534,7 +583,7 @@ jQuery(document).ready(function($) {
      var x = $("#tdata_dialog").data("x");
      var y = $("#tdata_dialog").data("y");
      var id = 'td' + current_floor.tdata_id++;
-     var symbol = new fabric.Triangle({width:10, height:10, fill:'blue', top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
+     var symbol = new fabric.Triangle({width:10, height:10, fill:'blue', top:grid_to_pixel_y(y), originX:"center", originY:"center",left:grid_to_pixel_x(x), id:id});
      canvas.add(symbol);
      lock_symbol(symbol);
      canvas.renderAll();
@@ -555,7 +604,7 @@ jQuery(document).ready(function($) {
      var name = $("#POI_name").val();
      $("#POI_name").val("");
      var type = $("#POI_select").val();
-     var symbol = new fabric.Rect({height:10, width:10, type:type, fill:'red',top:grid_to_pixel_y(y), left:grid_to_pixel_x(x), id:id});
+     var symbol = new fabric.Rect({height:10, width:10, type:type, fill:'red',top:grid_to_pixel_y(y),originX:"center", originY:"center", left:grid_to_pixel_x(x), id:id});
      canvas.add(symbol);
      lock_symbol(symbol);
      canvas.renderAll();
@@ -623,18 +672,7 @@ function unique_floor_name(name){
   }
   return true;
 }
-/*
-function enlarge_object(obj){
-  swtich(obj.type){
-    case "Triangle":
-    case "Circle":
-    case "Rect":
-    default:break;
-  }
-  canvas.setActiveObject();
-  canvas.renderAll();
-}
-*/
+
 //called when a new floor is selected
   function update_floor(){
     //if there isnt a map then there's no data
@@ -647,21 +685,21 @@ function enlarge_object(obj){
       canvas.setBackgroundImage(new_background, canvas.renderAll.bind(canvas));
       for(var i = 0; i < current_floor.beacons.length; i++){
         var beacon = current_floor.beacons[i];
-        var symbol = new fabric.Circle({radius:5, fill:'green',top:grid_to_pixel_y(beacon.top), left:grid_to_pixel_x(beacon.left), id:beacon.id});
+        var symbol = new fabric.Circle({radius:5, fill:'green',top:grid_to_pixel_y(beacon.top), originX:"center", originY:"center",left:grid_to_pixel_x(beacon.left), id:beacon.id});
         canvas.add(symbol);
         lock_symbol(symbol);
         $("<li class='list-group-item'>"+beacon.name+ '<i class="beacon-remove badge">Remove</i>'+ "</li>").appendTo("ul.beacon_list");
       }
       for(var i = 0; i < current_floor.training_data.length; i++){
         var tdata = current_floor.training_data[i];
-        var symbol = new fabric.Triangle({width:10,height:10, fill:'blue',top:grid_to_pixel_y(tdata.top), left:grid_to_pixel_x(tdata.left), id:tdata.id});
+        var symbol = new fabric.Triangle({width:10,height:10, fill:'blue',top:grid_to_pixel_y(tdata.top), originX:"center", originY:"center",left:grid_to_pixel_x(tdata.left), id:tdata.id});
         canvas.add(symbol);
         lock_symbol(symbol);
         $("<li class='list-group-item'>(X:"+tdata.x+", Y:"+tdata.y+")" + '<i class="data-remove badge">Remove</i>'+ "</li>").appendTo("ul.data_list");
       }
       for(var i = 0; i< current_floor.POI.length;i++){
         var poi = current_floor.POI[i];
-        var symbol = new fabric.Rect({width:10, height:10, fill:"red", top:grid_to_pixel_y(poi.top), left:grid_to_pixel_x(poi.left), id:poi.id});
+        var symbol = new fabric.Rect({width:10, height:10, fill:"red", top:grid_to_pixel_y(poi.top),originX:"center", originY:"center", left:grid_to_pixel_x(poi.left), id:poi.id});
         lock_symbol(symbol);
         canvas.add(symbol);
         $("<li class='list-group-item'>"+poi.name+'<i class="poi-remove badge">Remove</i>'+ "</li>").appendTo("ul.POI_list");
@@ -700,6 +738,14 @@ function enlarge_object(obj){
   }
   };
 
+  document.getElementById("building_image").onchange = function handleImage(e){
+    var reader = new FileReader();
+    reader.onload = function(event){
+      building_image = new Image();
+      building_image.src = event.target.result;
+    }
+    reader.readAsDataURL(e.target.files[0]);
+  }
 
 //input is a fabric js image
 function scale_image(image, width){
@@ -765,10 +811,10 @@ function pixel_to_grid_y(y){
   return Math.floor(y/(canvas.height/box_y));
 }
 function grid_to_pixel_x(x){
-  return Math.round((x+0.5)*(canvas.width/box_x).toFixed(2)-5);
+  return Math.round((x+0.5)*(canvas.width/box_x).toFixed(2));
 }
 function grid_to_pixel_y(y){
-  return Math.round((y+0.5)*(canvas.height/box_y).toFixed(2)-5);
+  return Math.round((y+0.5)*(canvas.height/box_y).toFixed(2));
 }
   //floor list script
 
@@ -857,6 +903,7 @@ function grid_to_pixel_y(y){
       $("#edit_lock").prop("checked", true);
     }} else {
       alert("Please enter a floor first before carry out any operations");
+      $("#edit_lock").prop("checked", true);
     }
   }
   function toggle_POI(){
@@ -957,36 +1004,43 @@ function grid_to_pixel_y(y){
 
 
   function send_data(){
-    var url = "http://178.62.124.27/start_config?buildingNameInput=fda&namespaceInput=dfsa&buildingHeight=20&buildingWidth=30";
-    var params = url.extract();
-    var image_array = [];
-    for(var i = 0; i<floor_array.length; i++){
-      image_array.push(getBase64Image(floor_array[i].floor_map));
-    }
+      if(building_image != null){
+      var image_array = [];
+      for(var i = 0; i<floor_array.length; i++){
+        image_array.push(getBase64Image(floor_array[i].floor_map));
+      }
 
-    $.ajax({
-      url: '/save_config',
-      type: 'POST',
-      data: {
-        data: {buildingName: params.buildingNameInput,
-        namespace: params.namespaceInput,
-        buildingHeight: params.buildingHeight,
-        buildingWidth: params.buildingWidth,
-        boxes_x: box_x,
-        boxes_y: box_y,
-        floors: _.map(floor_array, function(floor){ 
-          return {name: floor.name, 
-           beacons: floor.beacons, 
-           training_data: floor.training_data, 
-           POI: floor.POI, 
-           beacon_id: floor.beacon_id, 
-           tdata_id: floor.tdata_id, 
-           poi_id: floor.poi_id}
-        }),
-        images: image_array,
-        test: [{hello: 1}, {hello: 2}],
-      },}
-    });
+      $.ajax({
+        url: '/save_config',
+        type: 'POST',
+        data: {
+          data: {buildingName: url_params.buildingName,
+          namespace: url_params.namespace,
+          buildingHeight: url_params.buildingHeight,
+          buildingWidth: url_params.buildingWidth,
+          addressLine: url_params.addresLine,
+          postcode: url_params.postcode,
+          city: url_params.city,
+          boxes_x: box_x,
+          boxes_y: box_y,
+          floors: _.map(floor_array, function(floor){
+            return {name: floor.name,
+             beacons: floor.beacons,
+             training_data: floor.training_data,
+             POI: floor.POI,
+             beacon_id: floor.beacon_id,
+             tdata_id: floor.tdata_id,
+             poi_id: floor.poi_id}
+          }),
+          images: image_array,
+          building_image:building_image,
+
+        },}
+      });
+      $("#confirmation_dialog").modal('toggle');
+    } else {
+      alert("Please upload an image for your building");
+    }
   }
   function getBase64Image(img) {
       // Create an empty canvas element
