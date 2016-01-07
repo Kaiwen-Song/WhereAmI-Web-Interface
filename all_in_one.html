@@ -4,7 +4,6 @@
 <head>
   <script src = "https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.5.0/fabric.js"></script>
   <script src="http://rubaxa.github.io/Sortable/Sortable.js"></script>
-  <script src = "dentist.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 
   <style>
@@ -329,14 +328,14 @@ jQuery(document).ready(function($) {
     $("#confirmation_dialog").modal('hide');
 
     cached_building = JSON.parse(window.App.Data.cached_building);
-
-    if(Object.keys(cached_building).length!==0){
+     console.log(cached_building);
+    if(Object.keys(cached_building.floors).length!==0){
         console.log(cached_building);
-        for(var i = 0; i < Object.keys(cached_building).length; i++){
-          floor_array.push(parse_floor(cached_building.floors[Object.keys(cached_building)[i]]));
+        for(var i = 0; i < Object.keys(cached_building.floors).length; i++){
+          floor_array.push(parse_floor(cached_building.floors[Object.keys(cached_building.floors)[i]]));
           floor_array[i].floor_map = new Image();
           floor_array[i].floor_map.src = 'data:image/png;base64,'+cached_building.images[i];
-          $('<li class = "list-group-item"><span class="handle glyphicon glyphicon-menu-hamburger"></span>    '
+          $('<li class = "list-group-item"><span class="handle glyphicon glyphicon-menu-hamburger"></span>'
                +floor_array[i].name+ '<i class="js-remove badge">Remove</i>'+ '</li>').appendTo("ul.floor_list");
           console.log(floor_array);
         }
@@ -350,8 +349,8 @@ jQuery(document).ready(function($) {
         $("#image").prop('disabled', false);
       }
     } else {
-      building_height = url_params.buildingHeight;
-      building_width = url_params.buildingWidth;
+      building_height = url_params.building_height;
+      building_width = url_params.building_width;
       box_x = building_width / grid_size;
       box_y  = building_height / grid_size;
     }
@@ -495,63 +494,66 @@ jQuery(document).ready(function($) {
   });
 
     function parse_floor(floor_obj){
+      console.log(floor_obj["POI"]);
       var floor = {
-        POI:parse_POI(floor_obj["POI"]);
-        training_data:parse_tdata(floor_obj["training_tdata"]);
-        beacons:parse_tdata(floor_obj["beacons"]);
-        beacon_id:floor_obj["beacon_id"];
-        tdata_id:floor_obj["tdata_id"];
-        poi_id:floor_obj["poi_id"];
+        name:floor_obj["name"],
+        POI:parse_POI(floor_obj["POI"]),
+        training_data:parse_tdata(floor_obj["training_data"]),
+        beacons:parse_beacons(floor_obj["beacons"]),
+        beacon_id:floor_obj["beacon_id"],
+        tdata_id:floor_obj["tdata_id"],
+        poi_id:floor_obj["poi_id"],
       }
       return floor;
     }
 
-    function parse_beacons(list){
+    function parse_beacons(obj){
       var array = [];
       Object.keys(obj).forEach(function(key){
         var beacon = {
-          name:obj[key]["name"];
-          id:obj[key]["id"];
-          left:parseInt(obj[key]["left"]);
-          top:parseInt(obj[key]["top"]);
+          name:obj[key]["name"],
+          id:obj[key]["id"],
+          left:parseInt(obj[key]["left"]),
+          top:parseInt(obj[key]["top"]),
         }
         array.push(beacon);
-      }
+      })
       return array;
     }
 
-    function parse_POI(list){
+    function parse_POI(obj){
       var array = [];
       Object.keys(obj).forEach(function(key){
         var poi = {
-          name:obj[key]["name"];
-          id:obj[key]["id"];
-          left:parseInt(obj[key]["left"]);
-          top:parseInt(obj[key]["top"]);
-          type:obj[key]["type"];
+          name:obj[key]["name"],
+          id:obj[key]["id"],
+          left:parseInt(obj[key]["left"]),
+          top:parseInt(obj[key]["top"]),
+          type:obj[key]["type"],
         }
         array.push(poi);
-      }
+      })
       return array;
     }
 
-    function parse_tdata(list){
+    function parse_tdata(obj){
       var array = [];
-      Object.keys(obj).forEach(function(key){
-        var tdata = {
-          id:obj[key]["id"];
-          left:parseInt(obj[key]["left"]);
-          top:parseInt(obj[key]["top"]);
-          data:parse_tdata_list(obj[key]["data"]);
-        }
-        array.push(tdata);
+      for(var i = 0; i<Object.keys(obj).length; i++){
+          var tdata = {
+            id:obj[Object.keys(obj)[i]]["id"],
+            left:parseInt(obj[Object.keys(obj)[i]]["left"]),
+            top:parseInt(obj[Object.keys(obj)[i]]["top"]),
+            data:parse_tdata_list(obj[Object.keys(obj)[i]]["data"]),
+          }
+          array.push(tdata);
       }
       return array;
     }
 
     function parse_tdata_list(list){
       var data = {};
-      Object.keys(obj).forEach(function(key){
+      console.log(list);
+      Object.keys(list).forEach(function(key){
         data[key] = list[key];
       })
       return data;
@@ -1075,11 +1077,11 @@ function grid_to_pixel_y(y){
         url: '/save_config',
         type: 'POST',
         data: {
-          data: {buildingName: url_params.buildingName,
+          data: {buildingName: url_params.building_name,
           namespace: url_params.namespace,
-          buildingHeight: url_params.buildingHeight,
-          buildingWidth: url_params.buildingWidth,
-          addressLine: url_params.addresLine,
+          buildingHeight: building_height,
+          buildingWidth: building_width,
+          addressLine: url_params.address_line,
           postcode: url_params.postcode,
           city: url_params.city,
           boxes_x: box_x,
