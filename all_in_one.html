@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE HTML>
 <html>
 
@@ -5,6 +7,7 @@
   <script src = "https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.5.0/fabric.js"></script>
   <script src="http://rubaxa.github.io/Sortable/Sortable.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+  <script src="dentist.js"></script>
 
   <style>
   #feedback { font-size: 1.4em; }
@@ -328,8 +331,8 @@ jQuery(document).ready(function($) {
     $("#confirmation_dialog").modal('hide');
 
     cached_building = JSON.parse(window.App.Data.cached_building);
-     console.log(cached_building);
-    if(Object.keys(cached_building.floors).length!==0){
+     console.log(window.App.Data.cached_building);
+    if(Object.keys(cached_building).length!==0){
         console.log(cached_building);
         for(var i = 0; i < Object.keys(cached_building.floors).length; i++){
           floor_array.push(parse_floor(cached_building.floors[Object.keys(cached_building.floors)[i]]));
@@ -776,8 +779,12 @@ function unique_floor_name(name){
   }
 
   document.getElementById("image").onchange = function handleImage(e){
-    if(current_floor.backgroundImage != null||confirm("By uploading a new floor map, all current data placed for this floor will be removed, would you like to continue?")){
-        reset_floor();
+    //if(current_floor.backgroundImage != null//||confirm("By uploading a new floor map, all current data placed for this floor will be removed, would you like to continue?")
+     // ){
+
+      //  reset_floor();
+        canvas.backgroundImage = null;
+    canvas.clear().renderAll;
     var reader = new FileReader();
     reader.onload = function (event){
       var imgObj = new Image();
@@ -791,10 +798,11 @@ function unique_floor_name(name){
         canvas.setBackgroundImage(image, canvas.renderAll.bind(canvas));
         //could ask to remove stuff here
         current_floor.floor_map = imgObj;
+        repopulate_canvas_objects();
       }
     }
     reader.readAsDataURL(e.target.files[0]);
-  }
+  //}
   };
 
   document.getElementById("building_image").onchange = function handleImage(e){
@@ -827,30 +835,34 @@ function rescale_canvas(size){
     canvas.setWidth(new_background_img.width);
     canvas.setHeight(new_background_img.height);
     canvas.setBackgroundImage(new_background_img);
-    for(var i = 0; i < current_floor.beacons.length; i++){
+    repopulate_canvas_objects();
+  } else {
+    canvas.setWidth(size[0]);
+    canvas.setHeight(size[1]);
+  }
+}
+
+function repopulate_canvas_objects(){
+      for(var i = 0; i < current_floor.beacons.length; i++){
       var beacon = current_floor.beacons[i];
-      var symbol = new fabric.Circle({radius:5, fill:'green',top:grid_to_pixel_y(beacon.top), left:grid_to_pixel_x(beacon.left), id:beacon.id});
+      var symbol = new fabric.Circle({radius:5, fill:'green', originX:"center", originY:"center",top:grid_to_pixel_y(beacon.top), left:grid_to_pixel_x(beacon.left), id:beacon.id});
       canvas.add(symbol);
       lock_symbol(symbol);
     }
     for(var i = 0; i < current_floor.training_data.length; i++){
       var tdata = current_floor.training_data[i];
-      var symbol = new fabric.Triangle({width:10,height:10, fill:'blue',top:grid_to_pixel_y(tdata.top), left:grid_to_pixel_x(tdata.left), id:tdata.id});
+      var symbol = new fabric.Triangle({width:10,height:10, fill:'blue', originX:"center", originY:"center",top:grid_to_pixel_y(tdata.top), left:grid_to_pixel_x(tdata.left), id:tdata.id});
       canvas.add(symbol);
       lock_symbol(symbol);
     }
     for(var i = 0; i< current_floor.POI.length;i++){
       var poi = current_floor.POI[i];
-      var symbol = new fabric.Rect({width:10, height:10, fill:"red", top:grid_to_pixel_y(poi.top), left:grid_to_pixel_x(poi.left), id:poi.id});
+      var symbol = new fabric.Rect({width:10, height:10,originX:"center", originY:"center", fill:"red", top:grid_to_pixel_y(poi.top), left:grid_to_pixel_x(poi.left), id:poi.id});
       lock_symbol(symbol);
       canvas.add(symbol);
     }
-    add_grid_lines(new_background_img.width, new_background_img.height);
+    add_grid_lines(canvas.width, canvas.height);
     canvas.renderAll();
-  } else {
-    canvas.setWidth(size[0]);
-    canvas.setHeight(size[1]);
-  }
 }
 
 function get_canvas_size(){
