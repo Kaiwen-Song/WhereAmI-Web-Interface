@@ -20,7 +20,7 @@
 
   }
 
-  div.scroll {
+  ul.scroll {
     overflow: scroll;
   }
   .fill_bigger{
@@ -162,7 +162,7 @@
       </div>
       <div class = "panel-footer">
         <button id = "confirm" onclick="$('#confirmation_dialog').modal('toggle')" class = "btn btn-success" style = "float:right;"> Confirm</button>
-        <button id = "help" onclick ="help()" class = "btn btn-info" style = "float:right"> Help</button>
+        <button id = "help" onclick ="$('help_dialog').modal('toggle')" class = "btn btn-info" style = "float:right"> Help</button>
         <div class="clearfix"></div>
       </div>
     </div>
@@ -290,6 +290,39 @@
   </div>
 </div>
 
+<div class = "modal fade" id = "help_dialog">
+  <div class = "modal-dialog modal-sm">
+    <div class="modal-content" >
+      <div class="modal-header">
+        <h4 class="modal-title">Help</h4>
+      </div>
+        <div class="modal-body">
+          <p>
+            Thanks for using our system!
+
+            Before you begin, please set up the beacons, make sure they are spread out evenly and switched on. Record the IDs of the beacons and where they are laid out.
+
+            In order to set up WhereAmI navigation system for your building, please following the following guidelines:
+
+            1. Add a floor for each floor within your building
+            2. For each floor, upload a floor map that is black and white, and is the same alignment/dimension as the building dimension entered in the previous page
+            3. After uploading a floor map, add each beacon for that floor by clicking on the canvas.
+            4. Obtain the training data by downloading the application, stand at various positions within that floor and enter all the beacons along with their values you can detect. The more points you enter the better the locating service will be.
+            5. Enter any points of interests on that floor.
+
+            After you finalise this process for each floor, click on the Confirm Button and submit a picture which will be used to identify your building.
+
+          </p>
+        </div>
+      </div>
+      <div class = "modal-footer">
+        <input type = "button" class = "btn btn-default" data-dismiss="modal" value = "Close"/>
+      </div>
+    </div>
+  </div>
+
+
+
   <script>
   "use strict"
   //global variables
@@ -326,6 +359,7 @@ jQuery(document).ready(function($) {
     $("#tdata_dialog").modal('hide');
     $("#POI_dialog").modal('hide');
     $("#confirmation_dialog").modal('hide');
+    $("#help_dialog").modal('hide');
 
     cached_building = JSON.parse(window.App.Data.cached_building);
      console.log(cached_building);
