@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE HTML>
 <html>
 
@@ -7,7 +6,6 @@
   <script src = "https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.5.0/fabric.js"></script>
   <script src="http://rubaxa.github.io/Sortable/Sortable.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
-  <script src="dentist.js"></script>
 
   <style>
   #feedback { font-size: 1.4em; }
@@ -23,7 +21,7 @@
 
   }
 
-  div.scroll {
+  div {
     overflow: scroll;
   }
   .fill_bigger{
@@ -43,6 +41,7 @@
     width: 100%;
     position:relative;
     box-sizing:border-box;
+    max-height: 70vh;
   }
 
   .vertical_center{
@@ -512,43 +511,49 @@ jQuery(document).ready(function($) {
 
     function parse_beacons(obj){
       var array = [];
-      Object.keys(obj).forEach(function(key){
-        var beacon = {
-          name:obj[key]["name"],
-          id:obj[key]["id"],
-          left:parseInt(obj[key]["left"]),
-          top:parseInt(obj[key]["top"]),
-        }
-        array.push(beacon);
-      })
+      if (obj) {
+        Object.keys(obj).forEach(function(key){
+          var beacon = {
+            name:obj[key]["name"],
+            id:obj[key]["id"],
+            left:parseInt(obj[key]["left"]),
+            top:parseInt(obj[key]["top"]),
+          }
+          array.push(beacon);
+        })
+      }
       return array;
     }
 
     function parse_POI(obj){
       var array = [];
-      Object.keys(obj).forEach(function(key){
-        var poi = {
-          name:obj[key]["name"],
-          id:obj[key]["id"],
-          left:parseInt(obj[key]["left"]),
-          top:parseInt(obj[key]["top"]),
-          type:obj[key]["type"],
-        }
-        array.push(poi);
-      })
+      if (obj) {
+        Object.keys(obj).forEach(function(key){
+          var poi = {
+            name:obj[key]["name"],
+            id:obj[key]["id"],
+            left:parseInt(obj[key]["left"]),
+            top:parseInt(obj[key]["top"]),
+            type:obj[key]["type"],
+          }
+          array.push(poi);
+        });
+      }
       return array;
     }
 
     function parse_tdata(obj){
       var array = [];
-      for(var i = 0; i<Object.keys(obj).length; i++){
-          var tdata = {
-            id:obj[Object.keys(obj)[i]]["id"],
-            left:parseInt(obj[Object.keys(obj)[i]]["left"]),
-            top:parseInt(obj[Object.keys(obj)[i]]["top"]),
-            data:parse_tdata_list(obj[Object.keys(obj)[i]]["data"]),
-          }
-          array.push(tdata);
+      if (obj) {
+        for(var i = 0; i<Object.keys(obj).length; i++){
+            var tdata = {
+              id:obj[Object.keys(obj)[i]]["id"],
+              left:parseInt(obj[Object.keys(obj)[i]]["left"]),
+              top:parseInt(obj[Object.keys(obj)[i]]["top"]),
+              data:parse_tdata_list(obj[Object.keys(obj)[i]]["data"]),
+            }
+            array.push(tdata);
+        }
       }
       return array;
     }
