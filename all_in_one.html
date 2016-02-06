@@ -3,10 +3,6 @@
 <html>
 
 <head>
-  <script src = "https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.5.0/fabric.js"></script>
-  <script src="http://rubaxa.github.io/Sortable/Sortable.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
-  <script src="dentist.js"></script>
 
   <style>
   #feedback { font-size: 1.4em; }
@@ -85,7 +81,10 @@
   <script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.14.0/jquery.validate.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/json2/20150503/json2.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
-
+  <script src = "https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.5.0/fabric.js"></script>
+  <script src="http://rubaxa.github.io/Sortable/Sortable.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+  <script src="dentist.js"></script>
 </head>
 
 <body>
@@ -359,8 +358,8 @@
 
 jQuery(document).ready(function($) {
     $("#image").prop('disabled', 'true');
-    //url ="http://178.62.124.27/start_config?building_name=fda&namespace=dfsa&building_height=20&building_width=30";
-    url= document.URL;
+    url ="http://178.62.124.27/start_config?building_name=fda&namespace=dfsa&building_height=20&building_width=30";
+    //url= document.URL;
     url_params = url.extract();
 
 
@@ -374,8 +373,8 @@ jQuery(document).ready(function($) {
     $("#confirmation_dialog").modal('hide');
     $("#help_dialog").modal('hide');
 
-    cached_building = JSON.parse(window.App.Data.cached_building);
-     console.log(window.App.Data.cached_building);
+    cached_building= {}; //= JSON.parse(window.App.Data.cached_building);
+    // console.log(window.App.Data.cached_building);
     if(Object.keys(cached_building).length!==0){
         console.log(cached_building);
         for(var i = 0; i < Object.keys(cached_building.floors).length; i++){
@@ -819,7 +818,7 @@ function unique_floor_name(name){
         var symbol = new fabric.Triangle({width:10,height:10, fill:'blue',top:grid_to_pixel_y(tdata.top), originX:"center", originY:"center",left:grid_to_pixel_x(tdata.left), id:tdata.id});
         canvas.add(symbol);
         lock_symbol(symbol);
-        $("<li class='list-group-item'>"+'<span class = "handle glyphicon glyphicon-pencil" onclick = "edit_tdata(\''+id+'\')"></span>'+"  (X:"+tdata.left+", Y:"+tdata.top+")" + '<i class="data-remove badge">Remove</i>'+ "</li>").appendTo("ul.data_list");
+        $("<li class='list-group-item'>"+'<span class = "handle glyphicon glyphicon-pencil" onclick = "edit_tdata(\''+tdata.id+'\')"></span>'+"  (X:"+tdata.left+", Y:"+tdata.top+")" + '<i class="data-remove badge">Remove</i>'+ "</li>").appendTo("ul.data_list");
       }
       for(var i = 0; i< current_floor.POI.length;i++){
         var poi = current_floor.POI[i];
@@ -853,6 +852,7 @@ function unique_floor_name(name){
       imgObj.src = event.target.result;
       imgObj.onload = function() {
         var image = new fabric.Image(imgObj);
+        imgObj.height = (building_height/building_width).toFixed(1)*imgObj.width;
         scale_image(image,canvas.width);
         canvas.setHeight(image.height);
         canvas.setWidth(image.width);
